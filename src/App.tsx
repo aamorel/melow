@@ -10,35 +10,35 @@ import { Button } from './components/UI/Button';
 import { useGameState } from './hooks/useGameState';
 import { useAudio } from './hooks/useAudio';
 import { GAME_LEVELS, INTERVALS } from './utils/constants';
+import type { Interval } from './types/game';
 
 type AppView = 'game' | 'stats';
 
 function App() {
   const [currentView, setCurrentView] = useState<AppView>('game');
-  const [questionStartTime, setQuestionStartTime] = useState<number | null>(null);
   const { state, actions, computed } = useGameState();
   const { isInitialized } = useAudio();
 
   const handleStartGame = () => {
     actions.startGame(state.selectedLevel, state.selectedInstrument);
-    setQuestionStartTime(Date.now());
   };
 
-  const handleAnswer = (answer: string, responseTime: number) => {
+  const handleAnswer = (answer: Interval, responseTime: number) => {
     actions.submitAnswer(answer, responseTime);
   };
 
   const handleNextQuestion = () => {
     actions.nextQuestion();
-    setQuestionStartTime(Date.now());
   };
 
-  const handleEndGame = async () => {
-    await actions.endGame();
+  const handleEndGame = () => {
+    actions.endGame();
   };
 
   const renderGameContent = () => {
-    if (!state.currentSession) {
+    const session = state.currentSession;
+
+    if (!session) {
       return (
         <GameControls
           selectedLevel={state.selectedLevel}
@@ -51,8 +51,7 @@ function App() {
       );
     }
 
-    if (computed.isGameComplete) {
-      const session = state.currentSession;
+    if (computed.isGameComplete && session) {
       const correctAnswers = session.answers.filter(a => a.isCorrect).length;
       const accuracy = (correctAnswers / session.answers.length) * 100;
       const averageTime = session.answers.reduce((sum, a) => sum + a.responseTimeMs, 0) / session.answers.length;
@@ -88,12 +87,12 @@ function App() {
       );
     }
 
-    const currentLevel = GAME_LEVELS.find(l => l.id === state.currentSession.level)!;
+    const currentLevel = GAME_LEVELS.find(l => l.id === session.level)!;
 
     return (
       <div className="space-y-3">
         <ScoreDisplay 
-          session={state.currentSession} 
+          session={session} 
           currentQuestionIndex={state.currentQuestionIndex} 
         />
 
@@ -107,6 +106,7 @@ function App() {
             <AnswerButtons
               availableIntervals={currentLevel.intervals}
               onAnswer={handleAnswer}
+              questionId={computed.currentQuestion.id}
               disabled={state.showResult}
             />
           </div>
@@ -114,7 +114,7 @@ function App() {
 
         {state.showResult && computed.currentQuestion && (
           <div className="bg-white rounded-lg p-4 shadow-md text-center">
-            {state.currentSession.answers[state.currentQuestionIndex]?.isCorrect ? (
+            {session.answers[state.currentQuestionIndex]?.isCorrect ? (
               <div className="text-green-600">
                 <h3 className="text-xl font-bold mb-1">✅ Correct!</h3>
                 <p className="mb-3">That was indeed a {INTERVALS[computed.currentQuestion.correctInterval].name}</p>
@@ -126,7 +126,7 @@ function App() {
               </div>
             )}
 
-            {state.currentQuestionIndex < state.currentSession.questions.length - 1 ? (
+            {state.currentQuestionIndex < session.questions.length - 1 ? (
               <Button onClick={handleNextQuestion} variant="primary" size="lg">
                 Next Question →
               </Button>

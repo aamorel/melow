@@ -1,15 +1,14 @@
 import { useReducer, useCallback, useEffect, useRef } from 'react';
-import type { GameState, GameSession, Answer, Instrument } from '../types/game';
+import type { GameState, GameSession, Answer, Instrument, Interval } from '../types/game';
 import { GAME_LEVELS } from '../utils/constants';
 import { intervalGenerator } from '../services/intervalGenerator';
 import { database } from '../services/database';
 
 type GameAction =
   | { type: 'START_GAME'; level: number; instrument: Instrument }
-  | { type: 'SUBMIT_ANSWER'; answer: string; responseTime: number }
+  | { type: 'SUBMIT_ANSWER'; answer: Interval; responseTime: number }
   | { type: 'NEXT_QUESTION' }
   | { type: 'END_GAME' }
-  | { type: 'RESET_GAME' }
   | { type: 'SET_LEVEL'; level: number }
   | { type: 'SET_INSTRUMENT'; instrument: Instrument };
 
@@ -53,7 +52,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       
       const answer: Answer = {
         questionId: currentQuestion.id,
-        userAnswer: action.answer as any,
+        userAnswer: action.answer,
         isCorrect,
         responseTimeMs: action.responseTime,
       };
@@ -88,21 +87,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'END_GAME': {
       return {
-        ...state,
-        currentSession: null,
-        currentQuestionIndex: 0,
-        isPlaying: false,
-        showResult: false,
-      };
-    }
-
-    case 'RESET_GAME': {
-      return {
-        ...state,
-        currentSession: null,
-        currentQuestionIndex: 0,
-        isPlaying: false,
-        showResult: false,
+        ...initialState,
+        selectedLevel: state.selectedLevel,
+        selectedInstrument: state.selectedInstrument,
       };
     }
 
@@ -149,7 +136,7 @@ export function useGameState() {
     dispatch({ type: 'START_GAME', level, instrument });
   }, []);
 
-  const submitAnswer = useCallback((answer: string, responseTime: number) => {
+  const submitAnswer = useCallback((answer: Interval, responseTime: number) => {
     dispatch({ type: 'SUBMIT_ANSWER', answer, responseTime });
   }, []);
 
@@ -157,12 +144,8 @@ export function useGameState() {
     dispatch({ type: 'NEXT_QUESTION' });
   }, []);
 
-  const endGame = useCallback(async () => {
+  const endGame = useCallback(() => {
     dispatch({ type: 'END_GAME' });
-  }, []);
-
-  const resetGame = useCallback(() => {
-    dispatch({ type: 'RESET_GAME' });
   }, []);
 
   const setLevel = useCallback((level: number) => {
@@ -184,15 +167,12 @@ export function useGameState() {
       submitAnswer,
       nextQuestion,
       endGame,
-      resetGame,
       setLevel,
       setInstrument,
     },
     computed: {
       currentQuestion,
       isGameComplete,
-      progress: state.currentSession ? 
-        (state.currentQuestionIndex + 1) / state.currentSession.questions.length : 0,
     },
   };
 }

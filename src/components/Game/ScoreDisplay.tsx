@@ -1,5 +1,4 @@
 import { GameSession } from '../../types/game';
-import { INTERVALS } from '../../utils/constants';
 
 interface ScoreDisplayProps {
   session: GameSession;

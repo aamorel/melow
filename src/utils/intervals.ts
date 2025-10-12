@@ -40,7 +40,7 @@ export function calculateInterval(note1: Note, note2: Note): Interval {
   return interval ? (interval[0] as Interval) : 'unison';
 }
 
-export function getRandomElement<T>(array: T[]): T {
+export function getRandomElement<T>(array: readonly T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }
 

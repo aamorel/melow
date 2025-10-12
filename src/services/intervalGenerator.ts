@@ -1,4 +1,4 @@
-import type { Question, GameLevel, Instrument } from '../types/game';
+import type { Question, GameLevel, Instrument, Interval } from '../types/game';
 import { getRandomElement, getRandomNote, getTargetNote } from '../utils/intervals';
 import { INSTRUMENTS } from '../utils/constants';
 
@@ -28,7 +28,7 @@ export class IntervalGenerator {
     return questions;
   }
 
-  validateAnswer(question: Question, userAnswer: string): boolean {
+  validateAnswer(question: Question, userAnswer: Interval): boolean {
     return question.correctInterval === userAnswer;
   }
 }

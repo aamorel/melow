@@ -45,15 +45,10 @@ export function useAudio() {
     }
   }, [isInitialized]);
 
-  const setVolume = useCallback((volume: number) => {
-    audioEngine.setVolume(volume);
-  }, []);
-
   return {
     isInitialized,
     isPlaying,
     playNote,
     playInterval,
-    setVolume,
   };
 }

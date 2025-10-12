@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Question } from '../../types/game';
 import { useAudio } from '../../hooks/useAudio';
 import { Button } from '../UI/Button';
@@ -11,6 +11,10 @@ interface IntervalPlayerProps {
 export function IntervalPlayer({ question, disabled = false }: IntervalPlayerProps) {
   const { playInterval, isPlaying } = useAudio();
   const [playCount, setPlayCount] = useState(0);
+  
+  useEffect(() => {
+    setPlayCount(0);
+  }, [question.id]);
 
   const handlePlay = async () => {
     if (disabled || isPlaying) return;

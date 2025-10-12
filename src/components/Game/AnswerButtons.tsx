@@ -6,18 +6,26 @@ import { Button } from '../UI/Button';
 interface AnswerButtonsProps {
   availableIntervals: Interval[];
   onAnswer: (answer: Interval, responseTime: number) => void;
+  questionId: number;
   disabled?: boolean;
 }
 
-export function AnswerButtons({ availableIntervals, onAnswer, disabled = false }: AnswerButtonsProps) {
+export function AnswerButtons({ availableIntervals, onAnswer, questionId, disabled = false }: AnswerButtonsProps) {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<Interval | null>(null);
 
   useEffect(() => {
-    if (!disabled && !startTime) {
-      setStartTime(Date.now());
+    setSelectedAnswer(null);
+  }, [questionId]);
+
+  useEffect(() => {
+    if (disabled) {
+      setStartTime(null);
+      return;
     }
-  }, [disabled, startTime]);
+
+    setStartTime(Date.now());
+  }, [questionId, disabled]);
 
   const handleAnswer = (interval: Interval) => {
     if (disabled || !startTime) return;
