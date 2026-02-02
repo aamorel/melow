@@ -60,21 +60,21 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
       const averageTime = session.answers.reduce((sum, a) => sum + a.responseTimeMs, 0) / session.answers.length;
 
       return (
-        <div className="bg-white rounded-lg p-8 shadow-md text-center">
-          <h2 className="text-3xl font-bold mb-6 text-green-600">Session Complete! 🎉</h2>
-          
+        <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-8 text-center shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur">
+          <h2 className="text-3xl font-semibold mb-6 text-emerald-300">Session complete</h2>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="p-4 bg-green-50 rounded-lg">
-              <p className="text-2xl font-bold text-green-600">{correctAnswers}/10</p>
-              <p className="text-gray-600">Correct Answers</p>
+            <div className="rounded-xl border border-slate-800/70 bg-slate-950/40 p-4">
+              <p className="text-2xl font-semibold text-emerald-300">{correctAnswers}/10</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Correct</p>
             </div>
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <p className="text-2xl font-bold text-blue-600">{accuracy.toFixed(1)}%</p>
-              <p className="text-gray-600">Accuracy</p>
+            <div className="rounded-xl border border-slate-800/70 bg-slate-950/40 p-4">
+              <p className="text-2xl font-semibold text-cyan-300">{accuracy.toFixed(1)}%</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Accuracy</p>
             </div>
-            <div className="p-4 bg-purple-50 rounded-lg">
-              <p className="text-2xl font-bold text-purple-600">{(averageTime / 1000).toFixed(1)}s</p>
-              <p className="text-gray-600">Average Time</p>
+            <div className="rounded-xl border border-slate-800/70 bg-slate-950/40 p-4">
+              <p className="text-2xl font-semibold text-amber-300">{(averageTime / 1000).toFixed(1)}s</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Avg Time</p>
             </div>
           </div>
 
@@ -94,9 +94,10 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
 
     return (
       <div className="space-y-3">
-        <ScoreDisplay 
-          session={session} 
-          currentQuestionIndex={state.currentQuestionIndex} 
+        <ScoreDisplay
+          answers={session.answers}
+          totalQuestions={session.questions.length}
+          currentQuestionIndex={state.currentQuestionIndex}
         />
 
         {computed.currentQuestion && (
@@ -116,16 +117,16 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
         )}
 
         {state.showResult && computed.currentQuestion && (
-          <div className="bg-white rounded-lg p-4 shadow-md text-center">
+          <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-4 text-center shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur">
             {session.answers[state.currentQuestionIndex]?.isCorrect ? (
-              <div className="text-green-600">
-                <h3 className="text-xl font-bold mb-1">✅ Correct!</h3>
-                <p className="mb-3">That was indeed a {INTERVALS[computed.currentQuestion.correctInterval].name}</p>
+              <div className="text-emerald-300">
+                <h3 className="text-xl font-semibold mb-1">Correct</h3>
+                <p className="mb-3 text-slate-300">Interval: {INTERVALS[computed.currentQuestion.correctInterval].name}</p>
               </div>
             ) : (
-              <div className="text-red-600">
-                <h3 className="text-xl font-bold mb-1">❌ Incorrect</h3>
-                <p className="mb-3">The correct answer was: {INTERVALS[computed.currentQuestion.correctInterval].name}</p>
+              <div className="text-rose-300">
+                <h3 className="text-xl font-semibold mb-1">Incorrect</h3>
+                <p className="mb-3 text-slate-300">Answer: {INTERVALS[computed.currentQuestion.correctInterval].name}</p>
               </div>
             )}
 
@@ -146,32 +147,41 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div className="flex justify-center gap-4">
-          <Button 
-            onClick={() => setCurrentView('training')}
-            variant={currentView === 'training' ? 'primary' : 'secondary'}
-          >
-            🎵 Training
-          </Button>
-          <Button 
-            onClick={() => setCurrentView('stats')}
-            variant={currentView === 'stats' ? 'primary' : 'secondary'}
-          >
-            📊 Progress
-          </Button>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400/90 to-blue-500/80 text-lg font-semibold text-slate-950">
+            L
+          </div>
+          <h2 className="text-2xl font-semibold">Listening</h2>
         </div>
 
-        {onBack && (
-          <Button onClick={onBack} variant="secondary">
-            ← Choose Exercise
-          </Button>
-        )}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => setCurrentView('training')}
+              variant={currentView === 'training' ? 'primary' : 'secondary'}
+            >
+              Training
+            </Button>
+            <Button 
+              onClick={() => setCurrentView('stats')}
+              variant={currentView === 'stats' ? 'primary' : 'secondary'}
+            >
+              Progress
+            </Button>
+          </div>
+
+          {onBack && (
+            <Button onClick={onBack} variant="secondary">
+              Back
+            </Button>
+          )}
+        </div>
       </div>
 
       {!isInitialized && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-          <p className="text-yellow-800">🎵 Initializing audio engine...</p>
+        <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 p-4 text-center">
+          <p className="text-amber-200">Audio engine loading...</p>
         </div>
       )}
       
@@ -179,11 +189,10 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
         renderTrainingView()
       ) : (
         <div className="space-y-6">
-          <ProgressChart />
-          <SessionHistory />
+          <ProgressChart exerciseType="listening" levels={GAME_LEVELS} />
+          <SessionHistory exerciseType="listening" levels={GAME_LEVELS} />
         </div>
       )}
     </div>
   );
 }
-

@@ -8,7 +8,16 @@ export class AudioEngine {
   async initialize(): Promise<void> {
     if (this.audioContext) return;
 
-    this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioContextConstructor = (window.AudioContext ??
+      (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext) as
+      | typeof AudioContext
+      | undefined;
+
+    if (!AudioContextConstructor) {
+      throw new Error('Web Audio API is not supported in this environment');
+    }
+
+    this.audioContext = new AudioContextConstructor();
     this.masterGain = this.audioContext.createGain();
     this.masterGain.connect(this.audioContext.destination);
     this.masterGain.gain.setValueAtTime(this.volume, this.audioContext.currentTime);
@@ -27,6 +36,9 @@ export class AudioEngine {
     }
 
     if (!this.audioContext || !this.masterGain) return;
+    if (this.audioContext.state === 'suspended') {
+      await this.audioContext.resume();
+    }
 
     const now = this.audioContext.currentTime;
     
@@ -46,7 +58,52 @@ export class AudioEngine {
       case 'violin':
         this.playViolin(frequency, duration, now);
         break;
+      case 'voice':
+        this.playVoice(frequency, duration, now);
+        break;
     }
+  }
+
+  async playReferenceTone(frequency: number, duration = 1.1): Promise<void> {
+    if (!this.audioContext || !this.masterGain) {
+      await this.initialize();
+    }
+
+    if (!this.audioContext || !this.masterGain) return;
+    if (this.audioContext.state === 'suspended') {
+      await this.audioContext.resume();
+    }
+
+    const now = this.audioContext.currentTime;
+
+    const fundamental = this.audioContext.createOscillator();
+    const overtone = this.audioContext.createOscillator();
+    const fundamentalGain = this.audioContext.createGain();
+    const overtoneGain = this.audioContext.createGain();
+
+    fundamental.type = 'sine';
+    fundamental.frequency.setValueAtTime(frequency, now);
+
+    overtone.type = 'sine';
+    overtone.frequency.setValueAtTime(frequency * 2, now);
+
+    fundamentalGain.gain.setValueAtTime(0, now);
+    fundamentalGain.gain.linearRampToValueAtTime(0.32, now + 0.02);
+    fundamentalGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    overtoneGain.gain.setValueAtTime(0, now);
+    overtoneGain.gain.linearRampToValueAtTime(0.08, now + 0.02);
+    overtoneGain.gain.exponentialRampToValueAtTime(0.0005, now + duration);
+
+    fundamental.connect(fundamentalGain);
+    overtone.connect(overtoneGain);
+    fundamentalGain.connect(this.masterGain);
+    overtoneGain.connect(this.masterGain);
+
+    fundamental.start(now);
+    overtone.start(now);
+    fundamental.stop(now + duration);
+    overtone.stop(now + duration);
   }
 
   private playPiano(frequency: number, duration: number, startTime: number): void {
@@ -165,11 +222,45 @@ export class AudioEngine {
     oscillator.stop(startTime + duration);
   }
 
+  private playVoice(frequency: number, duration: number, startTime: number): void {
+    if (!this.audioContext || !this.masterGain) return;
+
+    const oscillator = this.audioContext.createOscillator();
+    const gainNode = this.audioContext.createGain();
+    const vibrato = this.audioContext.createOscillator();
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(frequency, startTime);
+
+    // Simple vibrato for a more vocal character
+    vibrato.type = 'sine';
+    vibrato.frequency.setValueAtTime(5, startTime);
+    const vibratoGain = this.audioContext.createGain();
+    vibratoGain.gain.setValueAtTime(3, startTime); // cents offset approx
+    vibrato.connect(vibratoGain);
+    vibratoGain.connect(oscillator.frequency);
+
+    // Smooth voice-like envelope
+    gainNode.gain.setValueAtTime(0, startTime);
+    gainNode.gain.linearRampToValueAtTime(0.35, startTime + 0.12);
+    gainNode.gain.setValueAtTime(0.3, startTime + duration * 0.7);
+    gainNode.gain.linearRampToValueAtTime(0.001, startTime + duration);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(this.masterGain);
+
+    oscillator.start(startTime);
+    vibrato.start(startTime);
+    oscillator.stop(startTime + duration);
+    vibrato.stop(startTime + duration);
+  }
+
   async playInterval(freq1: number, freq2: number, instrument: Instrument, gap = 0.1): Promise<void> {
     await this.playNote(freq1, instrument, 1.0);
     await new Promise(resolve => setTimeout(resolve, (1.0 + gap) * 1000));
     await this.playNote(freq2, instrument, 1.0);
   }
+
 }
 
 export const audioEngine = new AudioEngine();

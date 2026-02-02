@@ -41,8 +41,8 @@ export function AnswerButtons({ availableIntervals, onAnswer, questionId, disabl
   };
 
   return (
-    <div className="bg-white rounded-lg p-4 shadow-md">
-      <h3 className="text-lg font-semibold mb-3 text-center">What interval did you hear?</h3>
+    <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur">
+      <h3 className="text-lg font-semibold mb-3 text-center">Intervals</h3>
       
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
         {availableIntervals.map((interval) => (
@@ -57,12 +57,6 @@ export function AnswerButtons({ availableIntervals, onAnswer, questionId, disabl
           </Button>
         ))}
       </div>
-
-      {startTime && !selectedAnswer && (
-        <p className="text-center text-xs text-gray-500 mt-2">
-          Timer started!
-        </p>
-      )}
     </div>
   );
 }

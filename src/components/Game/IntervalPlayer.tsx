@@ -28,11 +28,11 @@ export function IntervalPlayer({ question, disabled = false }: IntervalPlayerPro
   };
 
   return (
-    <div className="bg-white rounded-lg p-4 shadow-md text-center">
-      <h3 className="text-lg font-semibold mb-2">Listen to the interval</h3>
+    <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-4 text-center shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur">
+      <h3 className="text-lg font-semibold mb-2">Interval</h3>
       
       <div className="mb-3 text-sm">
-        <p className="text-gray-600">
+        <p className="text-slate-400">
           {question.startingNote.note}{question.startingNote.octave} • {question.instrument}
         </p>
       </div>
@@ -43,11 +43,11 @@ export function IntervalPlayer({ question, disabled = false }: IntervalPlayerPro
         size="lg"
         className="mb-2"
       >
-        {isPlaying ? '🎵 Playing...' : '▶️ Play Interval'}
+        {isPlaying ? 'Playing...' : 'Play'}
       </Button>
 
       {playCount > 0 && (
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-slate-500">
           Played {playCount} time{playCount !== 1 ? 's' : ''}
         </p>
       )}

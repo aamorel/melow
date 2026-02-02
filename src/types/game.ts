@@ -13,7 +13,7 @@ export type Interval =
   | 'major7th'
   | 'octave';
 
-export type Instrument = 'piano' | 'saxophone' | 'guitar' | 'flute' | 'violin';
+export type Instrument = 'piano' | 'saxophone' | 'guitar' | 'flute' | 'violin' | 'voice';
 
 export type Note = {
   note: string;

@@ -32,6 +32,19 @@ export function useAudio() {
     }
   }, [isInitialized]);
 
+  const playReferenceTone = useCallback(async (note: Note, duration = 1.1) => {
+    if (!isInitialized) return;
+
+    setIsPlaying(true);
+    try {
+      await audioEngine.playReferenceTone(note.frequency, duration);
+    } catch (error) {
+      console.error('Failed to play reference tone:', error);
+    } finally {
+      setTimeout(() => setIsPlaying(false), duration * 1000);
+    }
+  }, [isInitialized]);
+
   const playInterval = useCallback(async (note1: Note, note2: Note, instrument: Instrument, gap = 0.1) => {
     if (!isInitialized) return;
     
@@ -50,5 +63,6 @@ export function useAudio() {
     isPlaying,
     playNote,
     playInterval,
+    playReferenceTone,
   };
 }

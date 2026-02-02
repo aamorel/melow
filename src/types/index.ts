@@ -15,3 +15,13 @@ export type {
   AnswerRecord,
   SettingsRecord,
 } from './database';
+
+export type { ExerciseType } from './exercise';
+
+export type {
+  PitchLevel,
+  PitchQuestion,
+  PitchAnswer,
+  PitchSession,
+  PitchGameState,
+} from './pitch';

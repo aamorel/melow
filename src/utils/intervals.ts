@@ -34,7 +34,7 @@ export function calculateInterval(note1: Note, note2: Note): Interval {
   const intervalSemitones = Math.abs(semitones2 - semitones1) % 12;
   
   const interval = Object.entries(INTERVALS).find(
-    ([_, info]) => info.semitones === intervalSemitones
+    ([, info]) => info.semitones === intervalSemitones
   );
   
   return interval ? (interval[0] as Interval) : 'unison';
@@ -48,4 +48,39 @@ export function getRandomNote(noteNames: string[], octaveRange: [number, number]
   const note = getRandomElement(noteNames);
   const octave = Math.floor(Math.random() * (octaveRange[1] - octaveRange[0] + 1)) + octaveRange[0];
   return createNote(note, octave);
+}
+
+export function noteToMidi(note: Note): number {
+  return (note.octave + 1) * 12 + NOTES.indexOf(note.note);
+}
+
+export function noteNameToMidi(noteName: string, octave: number): number {
+  return (octave + 1) * 12 + NOTES.indexOf(noteName);
+}
+
+export function midiToNote(midi: number): Note {
+  const normalizedMidi = Math.max(0, Math.round(midi));
+  const noteIndex = normalizedMidi % 12;
+  const octave = Math.floor(normalizedMidi / 12) - 1;
+  return createNote(NOTES[noteIndex], octave);
+}
+
+export function frequencyToNoteData(frequency: number) {
+  if (!Number.isFinite(frequency) || frequency <= 0) {
+    return null;
+  }
+
+  const midi = 69 + 12 * Math.log2(frequency / 440);
+  if (!Number.isFinite(midi)) {
+    return null;
+  }
+
+  const nearestMidi = Math.round(midi);
+  const cents = (midi - nearestMidi) * 100;
+
+  return {
+    midi: nearestMidi,
+    cents,
+    note: midiToNote(nearestMidi),
+  };
 }

@@ -22,19 +22,19 @@ export function GameControls({
   const currentLevel = GAME_LEVELS.find(l => l.id === selectedLevel)!;
 
   return (
-    <div className="bg-white rounded-lg p-6 shadow-md">
-      <h2 className="text-2xl font-bold text-center mb-6">Start Training Session</h2>
+    <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur">
+      <h2 className="text-2xl font-semibold text-center mb-6">Session</h2>
       
       {/* Level Selection */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Difficulty Level
+        <label className="block text-sm font-medium text-slate-300 mb-2">
+          Level
         </label>
         <select
           value={selectedLevel}
           onChange={(e) => onLevelChange(parseInt(e.target.value))}
           disabled={disabled}
-          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full rounded-xl border border-slate-700/80 bg-slate-950/60 p-3 text-sm text-slate-100 focus:border-cyan-400/80 focus:ring-2 focus:ring-cyan-400/40"
         >
           {GAME_LEVELS.map((level) => (
             <option key={level.id} value={level.id}>
@@ -42,19 +42,19 @@ export function GameControls({
             </option>
           ))}
         </select>
-        <p className="text-sm text-gray-600 mt-1">{currentLevel.description}</p>
+        <p className="text-sm text-slate-400 mt-1">{currentLevel.description}</p>
       </div>
 
       {/* Instrument Selection */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-slate-300 mb-2">
           Instrument
         </label>
         <select
           value={selectedInstrument}
           onChange={(e) => onInstrumentChange(e.target.value as Instrument)}
           disabled={disabled}
-          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full rounded-xl border border-slate-700/80 bg-slate-950/60 p-3 text-sm text-slate-100 focus:border-cyan-400/80 focus:ring-2 focus:ring-cyan-400/40"
         >
           {INSTRUMENTS.map((instrument) => (
             <option key={instrument} value={instrument}>
@@ -65,13 +65,13 @@ export function GameControls({
       </div>
 
       {/* Level Details */}
-      <div className="mb-6 p-4 bg-gray-50 rounded-md">
-        <h4 className="font-medium text-gray-900 mb-2">Level Details:</h4>
-        <ul className="text-sm text-gray-600 space-y-1">
-          <li>• {currentLevel.intervals.length} different intervals</li>
-          <li>• Starting notes: {currentLevel.startingNotes.join(', ')}</li>
-          <li>• Octave range: {currentLevel.octaveRange[0]}-{currentLevel.octaveRange[1]}</li>
-          {currentLevel.mixedInstruments && <li>• Mixed instruments per interval</li>}
+      <div className="mb-6 rounded-xl border border-slate-800/70 bg-slate-950/40 p-4">
+        <h4 className="font-medium text-slate-200 mb-2">Level details</h4>
+        <ul className="text-sm text-slate-400 space-y-1">
+          <li>{currentLevel.intervals.length} intervals</li>
+          <li>Start notes: {currentLevel.startingNotes.join(', ')}</li>
+          <li>Octave range: {currentLevel.octaveRange[0]}-{currentLevel.octaveRange[1]}</li>
+          {currentLevel.mixedInstruments && <li>Mixed instruments per interval</li>}
         </ul>
       </div>
 
@@ -82,7 +82,7 @@ export function GameControls({
         size="lg"
         className="w-full"
       >
-        Start 10-Question Session
+        Begin session
       </Button>
     </div>
   );

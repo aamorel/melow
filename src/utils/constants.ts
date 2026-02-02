@@ -1,4 +1,5 @@
-import { GameLevel, Interval } from '../types/game';
+import type { GameLevel, Interval } from '../types/game';
+import type { PitchLevel } from '../types/pitch';
 
 export const INTERVALS: Record<Interval, { name: string; semitones: number }> = {
   unison: { name: 'Unison', semitones: 0 },
@@ -84,4 +85,14 @@ export const GAME_LEVELS: GameLevel[] = [
   },
 ];
 
-export const INSTRUMENTS = ['piano', 'saxophone', 'guitar', 'flute', 'violin'] as const;
+export const PITCH_LEVELS: PitchLevel[] = [
+  {
+    id: 1,
+    name: 'Starter Notes',
+    description: 'Sing back simple notes within one octave.',
+    notes: ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
+    octaveRange: [3, 3],
+  },
+];
+
+export const INSTRUMENTS = ['piano', 'saxophone', 'guitar', 'flute', 'violin', 'voice'] as const;
