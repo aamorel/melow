@@ -472,8 +472,13 @@ export function PitchExercise({ onBack }: PitchExerciseProps) {
           </div>
 
           {onBack && (
-            <Button onClick={handleBack} variant="secondary">
-              Back
+            <Button
+              onClick={handleBack}
+              variant="secondary"
+              className="h-10 w-10 rounded-full p-0 border border-slate-700/80 bg-slate-900/70 text-sm text-slate-300 hover:border-slate-500 hover:text-white"
+              aria-label="Back to exercises"
+            >
+              &larr;
             </Button>
           )}
         </div>

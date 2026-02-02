@@ -54,6 +54,10 @@ export function noteToMidi(note: Note): number {
   return (note.octave + 1) * 12 + NOTES.indexOf(note.note);
 }
 
+export function transposeNote(note: Note, semitoneOffset: number): Note {
+  return midiToNote(noteToMidi(note) + semitoneOffset);
+}
+
 export function noteNameToMidi(noteName: string, octave: number): number {
   return (octave + 1) * 12 + NOTES.indexOf(noteName);
 }

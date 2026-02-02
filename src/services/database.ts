@@ -1,6 +1,7 @@
 import type { SessionRecord, AnswerRecord, SettingsRecord } from '../types/database';
 import type { GameSession } from '../types/game';
 import type { PitchSession } from '../types/pitch';
+import type { ChordSession } from '../types/chord';
 import type { ExerciseType } from '../types/exercise';
 import { frequencyToNoteData } from '../utils/intervals';
 
@@ -101,6 +102,14 @@ export class DatabaseService {
         cents_off: answer.centsOff,
       };
     });
+  }
+
+  async saveChordSession(session: ChordSession): Promise<number> {
+    return this.saveSessionRecord('chords', session, (question, answer) => ({
+      starting_note: `${question.rootNote.note}${question.rootNote.octave}`,
+      correct_interval: question.chordQuality,
+      user_answer: answer.userAnswer,
+    }));
   }
 
   getSessions(exerciseType?: ExerciseType): SessionRecord[] {

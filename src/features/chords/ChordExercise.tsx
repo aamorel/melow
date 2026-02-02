@@ -1,32 +1,32 @@
 import { useState } from 'react';
-import { GameControls } from '../../components/Game/GameControls';
-import { IntervalPlayer } from '../../components/Game/IntervalPlayer';
-import { AnswerButtons } from '../../components/Game/AnswerButtons';
+import { Button } from '../../components/UI/Button';
 import { ScoreDisplay } from '../../components/Game/ScoreDisplay';
 import { ProgressChart } from '../../components/Stats/ProgressChart';
 import { SessionHistory } from '../../components/Stats/SessionHistory';
-import { Button } from '../../components/UI/Button';
-import { useGameState } from '../../hooks/useGameState';
+import { useChordGameState } from '../../hooks/useChordGameState';
 import { useAudio } from '../../hooks/useAudio';
-import { GAME_LEVELS, INTERVALS } from '../../utils/constants';
-import type { Interval } from '../../types/game';
+import { CHORD_LEVELS, CHORD_QUALITIES } from '../../utils/constants';
+import type { ChordQuality } from '../../types/chord';
+import { ChordControls } from './ChordControls';
+import { ChordPlayer } from './ChordPlayer';
+import { ChordAnswerButtons } from './ChordAnswerButtons';
 
-type ListeningView = 'training' | 'stats';
+type ChordView = 'training' | 'stats';
 
-interface ListeningExerciseProps {
+interface ChordExerciseProps {
   onBack?: () => void;
 }
 
-export function ListeningExercise({ onBack }: ListeningExerciseProps) {
-  const [currentView, setCurrentView] = useState<ListeningView>('training');
-  const { state, actions, computed } = useGameState();
+export function ChordExercise({ onBack }: ChordExerciseProps) {
+  const [currentView, setCurrentView] = useState<ChordView>('training');
+  const { state, actions, computed } = useChordGameState();
   const { isInitialized } = useAudio();
 
   const handleStartGame = () => {
     actions.startGame(state.selectedLevel, state.selectedInstrument);
   };
 
-  const handleAnswer = (answer: Interval, responseTime: number) => {
+  const handleAnswer = (answer: ChordQuality, responseTime: number) => {
     actions.submitAnswer(answer, responseTime);
   };
 
@@ -43,7 +43,7 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
 
     if (!session) {
       return (
-        <GameControls
+        <ChordControls
           selectedLevel={state.selectedLevel}
           selectedInstrument={state.selectedInstrument}
           onLevelChange={actions.setLevel}
@@ -90,7 +90,7 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
       );
     }
 
-    const currentLevel = GAME_LEVELS.find(l => l.id === session.level)!;
+    const currentLevel = CHORD_LEVELS.find(l => l.id === session.level) ?? CHORD_LEVELS[0];
 
     return (
       <div className="space-y-3">
@@ -102,13 +102,13 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
 
         {computed.currentQuestion && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            <IntervalPlayer 
+            <ChordPlayer
               question={computed.currentQuestion}
               disabled={state.showResult}
             />
 
-            <AnswerButtons
-              availableIntervals={currentLevel.intervals}
+            <ChordAnswerButtons
+              availableChords={currentLevel.chords}
               onAnswer={handleAnswer}
               questionId={computed.currentQuestion.id}
               disabled={state.showResult}
@@ -121,12 +121,16 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
             {session.answers[state.currentQuestionIndex]?.isCorrect ? (
               <div className="text-emerald-300">
                 <h3 className="text-xl font-semibold mb-1">Correct</h3>
-                <p className="mb-3 text-slate-300">Interval: {INTERVALS[computed.currentQuestion.correctInterval].name}</p>
+                <p className="mb-3 text-slate-300">
+                  Chord: {CHORD_QUALITIES[computed.currentQuestion.chordQuality].name}
+                </p>
               </div>
             ) : (
               <div className="text-rose-300">
                 <h3 className="text-xl font-semibold mb-1">Incorrect</h3>
-                <p className="mb-3 text-slate-300">Answer: {INTERVALS[computed.currentQuestion.correctInterval].name}</p>
+                <p className="mb-3 text-slate-300">
+                  Answer: {CHORD_QUALITIES[computed.currentQuestion.chordQuality].name}
+                </p>
               </div>
             )}
 
@@ -149,21 +153,21 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400/90 to-blue-500/80 text-lg font-semibold text-slate-950">
-            L
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400/90 to-orange-500/80 text-lg font-semibold text-slate-950">
+            C
           </div>
-          <h2 className="text-2xl font-semibold">Listening</h2>
+          <h2 className="text-2xl font-semibold">Chord Quality</h2>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex gap-2">
-            <Button 
+            <Button
               onClick={() => setCurrentView('training')}
               variant={currentView === 'training' ? 'primary' : 'secondary'}
             >
               Training
             </Button>
-            <Button 
+            <Button
               onClick={() => setCurrentView('stats')}
               variant={currentView === 'stats' ? 'primary' : 'secondary'}
             >
@@ -189,13 +193,13 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
           <p className="text-amber-200">Audio engine loading...</p>
         </div>
       )}
-      
+
       {currentView === 'training' ? (
         renderTrainingView()
       ) : (
         <div className="space-y-6">
-          <ProgressChart exerciseType="listening" levels={GAME_LEVELS} />
-          <SessionHistory exerciseType="listening" levels={GAME_LEVELS} />
+          <ProgressChart exerciseType="chords" levels={CHORD_LEVELS} />
+          <SessionHistory exerciseType="chords" levels={CHORD_LEVELS} />
         </div>
       )}
     </div>

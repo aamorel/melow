@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Layout } from './components/UI/Layout';
 import { ListeningExercise } from './features/listening/ListeningExercise';
 import { PitchExercise } from './features/pitch/PitchExercise';
+import { ChordExercise } from './features/chords/ChordExercise';
 
-type ExerciseId = 'listening' | 'pitch';
+type ExerciseId = 'listening' | 'pitch' | 'chords';
 
 interface ExerciseDefinition {
   id: ExerciseId;
@@ -20,6 +21,13 @@ const EXERCISES: ExerciseDefinition[] = [
     tags: ['Intervals', 'Memory'],
     accent: 'from-cyan-400/90 to-blue-500/80',
     icon: 'L',
+  },
+  {
+    id: 'chords',
+    name: 'Chords',
+    tags: ['Harmony', 'Quality'],
+    accent: 'from-amber-400/90 to-orange-500/80',
+    icon: 'C',
   },
   {
     id: 'pitch',
@@ -39,6 +47,8 @@ function App() {
       {activeExercise ? (
         activeExercise.id === 'listening' ? (
           <ListeningExercise onBack={() => setSelectedExercise(null)} />
+        ) : activeExercise.id === 'chords' ? (
+          <ChordExercise onBack={() => setSelectedExercise(null)} />
         ) : activeExercise.id === 'pitch' ? (
           <PitchExercise onBack={() => setSelectedExercise(null)} />
         ) : null
@@ -55,9 +65,22 @@ function App() {
                 type="button"
                 onClick={() => setSelectedExercise(exercise.id)}
                 aria-label={`Open ${exercise.name}`}
+                onMouseMove={(event) => {
+                  const rect = event.currentTarget.getBoundingClientRect();
+                  const x = event.clientX - rect.left;
+                  const y = event.clientY - rect.top;
+                  event.currentTarget.style.setProperty('--glow-x', `${x}px`);
+                  event.currentTarget.style.setProperty('--glow-y', `${y}px`);
+                }}
                 className="group relative overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 text-left shadow-[0_20px_60px_rgba(0,0,0,0.35)] transition duration-200 hover:-translate-y-1 hover:border-slate-700/80 hover:bg-slate-900/80"
               >
-                <div className="absolute inset-0 opacity-0 transition duration-200 group-hover:opacity-100 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.12),transparent_55%)]"></div>
+                <div
+                  className="absolute inset-0 opacity-0 transition duration-200 group-hover:opacity-100"
+                  style={{
+                    background:
+                      'radial-gradient(420px circle at var(--glow-x, 50%) var(--glow-y, 20%), rgba(56,189,248,0.12), transparent 60%)',
+                  }}
+                ></div>
 
                 <div className="relative flex h-full flex-col justify-between gap-6">
                   <div className="flex items-start justify-between gap-4">

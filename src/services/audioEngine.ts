@@ -64,6 +64,48 @@ export class AudioEngine {
     }
   }
 
+  async playChord(frequencies: number[], instrument: Instrument, duration = 1.2): Promise<void> {
+    if (!this.audioContext || !this.masterGain) {
+      await this.initialize();
+    }
+
+    if (!this.audioContext || !this.masterGain) return;
+    if (this.audioContext.state === 'suspended') {
+      await this.audioContext.resume();
+    }
+
+    if (frequencies.length === 0) return;
+
+    const now = this.audioContext.currentTime;
+    const chordGain = this.audioContext.createGain();
+    const gainScale = 1 / Math.sqrt(Math.max(1, frequencies.length));
+    chordGain.gain.setValueAtTime(gainScale, now);
+    chordGain.connect(this.masterGain);
+
+    frequencies.forEach((frequency) => {
+      switch (instrument) {
+        case 'piano':
+          this.playPiano(frequency, duration, now, chordGain);
+          break;
+        case 'saxophone':
+          this.playSaxophone(frequency, duration, now, chordGain);
+          break;
+        case 'guitar':
+          this.playGuitar(frequency, duration, now, chordGain);
+          break;
+        case 'flute':
+          this.playFlute(frequency, duration, now, chordGain);
+          break;
+        case 'violin':
+          this.playViolin(frequency, duration, now, chordGain);
+          break;
+        case 'voice':
+          this.playVoice(frequency, duration, now, chordGain);
+          break;
+      }
+    });
+  }
+
   async playReferenceTone(frequency: number, duration = 1.1): Promise<void> {
     if (!this.audioContext || !this.masterGain) {
       await this.initialize();
@@ -106,8 +148,9 @@ export class AudioEngine {
     overtone.stop(now + duration);
   }
 
-  private playPiano(frequency: number, duration: number, startTime: number): void {
+  private playPiano(frequency: number, duration: number, startTime: number, destination?: AudioNode): void {
     if (!this.audioContext || !this.masterGain) return;
+    const output = destination ?? this.masterGain;
 
     const oscillator = this.audioContext.createOscillator();
     const gainNode = this.audioContext.createGain();
@@ -121,14 +164,15 @@ export class AudioEngine {
     gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
     oscillator.connect(gainNode);
-    gainNode.connect(this.masterGain);
+    gainNode.connect(output);
 
     oscillator.start(startTime);
     oscillator.stop(startTime + duration);
   }
 
-  private playSaxophone(frequency: number, duration: number, startTime: number): void {
+  private playSaxophone(frequency: number, duration: number, startTime: number, destination?: AudioNode): void {
     if (!this.audioContext || !this.masterGain) return;
+    const output = destination ?? this.masterGain;
 
     // Saxophone uses sawtooth wave with filter for warmth
     const oscillator = this.audioContext.createOscillator();
@@ -150,14 +194,15 @@ export class AudioEngine {
 
     oscillator.connect(filter);
     filter.connect(gainNode);
-    gainNode.connect(this.masterGain);
+    gainNode.connect(output);
 
     oscillator.start(startTime);
     oscillator.stop(startTime + duration);
   }
 
-  private playGuitar(frequency: number, duration: number, startTime: number): void {
+  private playGuitar(frequency: number, duration: number, startTime: number, destination?: AudioNode): void {
     if (!this.audioContext || !this.masterGain) return;
+    const output = destination ?? this.masterGain;
 
     const oscillator = this.audioContext.createOscillator();
     const gainNode = this.audioContext.createGain();
@@ -172,14 +217,15 @@ export class AudioEngine {
     gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
     oscillator.connect(gainNode);
-    gainNode.connect(this.masterGain);
+    gainNode.connect(output);
 
     oscillator.start(startTime);
     oscillator.stop(startTime + duration);
   }
 
-  private playFlute(frequency: number, duration: number, startTime: number): void {
+  private playFlute(frequency: number, duration: number, startTime: number, destination?: AudioNode): void {
     if (!this.audioContext || !this.masterGain) return;
+    const output = destination ?? this.masterGain;
 
     const oscillator = this.audioContext.createOscillator();
     const gainNode = this.audioContext.createGain();
@@ -194,14 +240,15 @@ export class AudioEngine {
     gainNode.gain.linearRampToValueAtTime(0.001, startTime + duration);
 
     oscillator.connect(gainNode);
-    gainNode.connect(this.masterGain);
+    gainNode.connect(output);
 
     oscillator.start(startTime);
     oscillator.stop(startTime + duration);
   }
 
-  private playViolin(frequency: number, duration: number, startTime: number): void {
+  private playViolin(frequency: number, duration: number, startTime: number, destination?: AudioNode): void {
     if (!this.audioContext || !this.masterGain) return;
+    const output = destination ?? this.masterGain;
 
     const oscillator = this.audioContext.createOscillator();
     const gainNode = this.audioContext.createGain();
@@ -216,14 +263,15 @@ export class AudioEngine {
     gainNode.gain.linearRampToValueAtTime(0.001, startTime + duration);
 
     oscillator.connect(gainNode);
-    gainNode.connect(this.masterGain);
+    gainNode.connect(output);
 
     oscillator.start(startTime);
     oscillator.stop(startTime + duration);
   }
 
-  private playVoice(frequency: number, duration: number, startTime: number): void {
+  private playVoice(frequency: number, duration: number, startTime: number, destination?: AudioNode): void {
     if (!this.audioContext || !this.masterGain) return;
+    const output = destination ?? this.masterGain;
 
     const oscillator = this.audioContext.createOscillator();
     const gainNode = this.audioContext.createGain();
@@ -247,7 +295,7 @@ export class AudioEngine {
     gainNode.gain.linearRampToValueAtTime(0.001, startTime + duration);
 
     oscillator.connect(gainNode);
-    gainNode.connect(this.masterGain);
+    gainNode.connect(output);
 
     oscillator.start(startTime);
     vibrato.start(startTime);

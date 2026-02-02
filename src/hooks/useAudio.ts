@@ -58,11 +58,25 @@ export function useAudio() {
     }
   }, [isInitialized]);
 
+  const playChord = useCallback(async (notes: Note[], instrument: Instrument, duration = 1.2) => {
+    if (!isInitialized || notes.length === 0) return;
+
+    setIsPlaying(true);
+    try {
+      await audioEngine.playChord(notes.map(note => note.frequency), instrument, duration);
+    } catch (error) {
+      console.error('Failed to play chord:', error);
+    } finally {
+      setTimeout(() => setIsPlaying(false), duration * 1000);
+    }
+  }, [isInitialized]);
+
   return {
     isInitialized,
     isPlaying,
     playNote,
     playInterval,
     playReferenceTone,
+    playChord,
   };
 }

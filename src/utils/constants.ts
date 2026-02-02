@@ -1,5 +1,6 @@
 import type { GameLevel, Interval } from '../types/game';
 import type { PitchLevel } from '../types/pitch';
+import type { ChordLevel, ChordQuality } from '../types/chord';
 
 export const INTERVALS: Record<Interval, { name: string; semitones: number }> = {
   unison: { name: 'Unison', semitones: 0 },
@@ -18,6 +19,23 @@ export const INTERVALS: Record<Interval, { name: string; semitones: number }> = 
 };
 
 export const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+export const CHORD_QUALITIES: Record<ChordQuality, { name: string; intervals: number[] }> = {
+  major: { name: 'Major', intervals: [0, 4, 7] },
+  minor: { name: 'Minor', intervals: [0, 3, 7] },
+  diminished: { name: 'Diminished', intervals: [0, 3, 6] },
+  augmented: { name: 'Augmented', intervals: [0, 4, 8] },
+  major7: { name: 'Major 7', intervals: [0, 4, 7, 11] },
+  minor7: { name: 'Minor 7', intervals: [0, 3, 7, 10] },
+  dominant7: { name: 'Dominant 7', intervals: [0, 4, 7, 10] },
+  major9: { name: 'Major 9', intervals: [0, 4, 7, 11, 14] },
+  minor9: { name: 'Minor 9', intervals: [0, 3, 7, 10, 14] },
+  dominant9: { name: 'Dominant 9', intervals: [0, 4, 7, 10, 14] },
+  sus2: { name: 'Sus 2', intervals: [0, 2, 7] },
+  sus4: { name: 'Sus 4', intervals: [0, 5, 7] },
+  add2: { name: 'Add 2', intervals: [0, 2, 4, 7] },
+  add9: { name: 'Add 9', intervals: [0, 4, 7, 14] },
+};
 
 export const GAME_LEVELS: GameLevel[] = [
   {
@@ -82,6 +100,27 @@ export const GAME_LEVELS: GameLevel[] = [
     startingNotes: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
     octaveRange: [2, 6],
     mixedInstruments: true,
+  },
+];
+
+export const CHORD_LEVELS: ChordLevel[] = [
+  {
+    id: 1,
+    name: 'Triad Qualities',
+    description: 'Identify major, minor, diminished, and augmented triads.',
+    chords: ['major', 'minor', 'diminished', 'augmented'],
+    startingNotes: ['C', 'F', 'G'],
+    octaveRange: [3, 4],
+    mixedInstruments: false,
+  },
+  {
+    id: 2,
+    name: 'Extended Colors',
+    description: '7ths, 9ths, suspended, and add chords across all keys.',
+    chords: ['major7', 'minor7', 'dominant7', 'major9', 'minor9', 'dominant9', 'sus2', 'sus4', 'add2', 'add9'],
+    startingNotes: NOTES,
+    octaveRange: [3, 4],
+    mixedInstruments: false,
   },
 ];
 

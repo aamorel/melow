@@ -25,3 +25,12 @@ export type {
   PitchSession,
   PitchGameState,
 } from './pitch';
+
+export type {
+  ChordQuality,
+  ChordLevel,
+  ChordQuestion,
+  ChordAnswer,
+  ChordSession,
+  ChordGameState,
+} from './chord';
