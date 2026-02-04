@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '../../components/UI/Button';
 import { ScoreDisplay } from '../../components/Game/ScoreDisplay';
 import { ProgressChart } from '../../components/Stats/ProgressChart';
 import { SessionHistory } from '../../components/Stats/SessionHistory';
 import { useChordGameState } from '../../hooks/useChordGameState';
 import { useAudio } from '../../hooks/useAudio';
-import { CHORD_LEVELS, CHORD_QUALITIES } from '../../utils/constants';
+import { ANSWER_FEEDBACK_TIMINGS, CHORD_LEVELS } from '../../utils/constants';
 import type { ChordQuality } from '../../types/chord';
 import { ChordControls } from './ChordControls';
 import { ChordPlayer } from './ChordPlayer';
@@ -21,6 +21,7 @@ export function ChordExercise({ onBack }: ChordExerciseProps) {
   const [currentView, setCurrentView] = useState<ChordView>('training');
   const { state, actions, computed } = useChordGameState();
   const { isInitialized } = useAudio();
+  const { nextQuestion } = actions;
 
   const handleStartGame = () => {
     actions.startGame(state.selectedLevel, state.selectedInstrument);
@@ -30,13 +31,28 @@ export function ChordExercise({ onBack }: ChordExerciseProps) {
     actions.submitAnswer(answer, responseTime);
   };
 
-  const handleNextQuestion = () => {
-    actions.nextQuestion();
-  };
-
   const handleEndGame = () => {
     actions.endGame();
   };
+
+  useEffect(() => {
+    if (currentView !== 'training' || !state.showResult || !state.currentSession) return;
+
+    const answer = state.currentSession.answers[state.currentQuestionIndex];
+    if (!answer) return;
+
+    const delayMs = answer.isCorrect
+      ? ANSWER_FEEDBACK_TIMINGS.correctMs
+      : ANSWER_FEEDBACK_TIMINGS.incorrectMs;
+
+    const timer = window.setTimeout(() => {
+      nextQuestion();
+    }, delayMs);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [currentView, state.showResult, state.currentQuestionIndex, state.currentSession, nextQuestion]);
 
   const renderTrainingView = () => {
     const session = state.currentSession;
@@ -111,38 +127,9 @@ export function ChordExercise({ onBack }: ChordExerciseProps) {
               availableChords={currentLevel.chords}
               onAnswer={handleAnswer}
               questionId={computed.currentQuestion.id}
+              correctAnswer={computed.currentQuestion.chordQuality}
               disabled={state.showResult}
             />
-          </div>
-        )}
-
-        {state.showResult && computed.currentQuestion && (
-          <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-4 text-center shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur">
-            {session.answers[state.currentQuestionIndex]?.isCorrect ? (
-              <div className="text-emerald-300">
-                <h3 className="text-xl font-semibold mb-1">Correct</h3>
-                <p className="mb-3 text-slate-300">
-                  Chord: {CHORD_QUALITIES[computed.currentQuestion.chordQuality].name}
-                </p>
-              </div>
-            ) : (
-              <div className="text-rose-300">
-                <h3 className="text-xl font-semibold mb-1">Incorrect</h3>
-                <p className="mb-3 text-slate-300">
-                  Answer: {CHORD_QUALITIES[computed.currentQuestion.chordQuality].name}
-                </p>
-              </div>
-            )}
-
-            {state.currentQuestionIndex < session.questions.length - 1 ? (
-              <Button onClick={handleNextQuestion} variant="primary" size="lg">
-                Next Question →
-              </Button>
-            ) : (
-              <Button onClick={handleNextQuestion} variant="success" size="lg">
-                Finish Session
-              </Button>
-            )}
           </div>
         )}
       </div>

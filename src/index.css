@@ -60,6 +60,14 @@
   .stagger-fade > *:nth-child(4) {
     animation-delay: 240ms;
   }
+
+  .answer-shake {
+    animation: answer-shake 0.45s ease-in-out;
+  }
+
+  .answer-pop {
+    animation: answer-pop 0.4s ease-out;
+  }
 }
 
 @keyframes fade-in {
@@ -79,5 +87,36 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes answer-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes answer-pop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
   }
 }

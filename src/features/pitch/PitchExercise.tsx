@@ -4,12 +4,12 @@ import { ScoreDisplay } from '../../components/Game/ScoreDisplay';
 import { ProgressChart } from '../../components/Stats/ProgressChart';
 import { SessionHistory } from '../../components/Stats/SessionHistory';
 import { PitchMeter } from '../../components/Game/PitchMeter';
+import { SessionSetup, SESSION_INSTRUMENTS } from '../../components/Game/SessionSetup';
 import { usePitchGameState } from '../../hooks/usePitchGameState';
 import { usePitchDetector } from '../../hooks/usePitchDetector';
 import { useAudio } from '../../hooks/useAudio';
-import { INSTRUMENTS, PITCH_LEVELS } from '../../utils/constants';
+import { PITCH_LEVELS } from '../../utils/constants';
 import { frequencyToNoteData } from '../../utils/intervals';
-import type { Instrument } from '../../types/game';
 
 type PitchView = 'training' | 'stats';
 
@@ -26,7 +26,7 @@ const MAX_ATTEMPT_MS = 30000;
 export function PitchExercise({ onBack }: PitchExerciseProps) {
   const [currentView, setCurrentView] = useState<PitchView>('training');
   const { state, actions, computed } = usePitchGameState();
-  const { isInitialized, playNote, playReferenceTone } = useAudio();
+  const { isInitialized, playNote } = useAudio();
   const {
     status,
     errorMessage,
@@ -212,11 +212,7 @@ export function PitchExercise({ onBack }: PitchExerciseProps) {
     if (shouldPause) {
       pauseListening();
     }
-    if (state.selectedInstrument === 'piano') {
-      void playReferenceTone(currentQuestion.targetNote, NOTE_DURATION_SECONDS);
-    } else {
-      void playNote(currentQuestion.targetNote, state.selectedInstrument, NOTE_DURATION_SECONDS);
-    }
+    void playNote(currentQuestion.targetNote, state.selectedInstrument, NOTE_DURATION_SECONDS);
     if (listenTimeoutRef.current !== null) {
       window.clearTimeout(listenTimeoutRef.current);
     }
@@ -255,47 +251,31 @@ export function PitchExercise({ onBack }: PitchExerciseProps) {
 
     if (!session) {
       const level = PITCH_LEVELS.find(l => l.id === state.selectedLevel) ?? PITCH_LEVELS[0];
+      const detailItems = [
+        `${level.notes.length} notes`,
+        `Notes: ${level.notes.join(', ')}`,
+        `Octave range: ${level.octaveRange[0]}-${level.octaveRange[1]}`,
+      ];
       return (
-        <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur space-y-5 text-left">
-          <div>
-            <h2 className="text-2xl font-semibold">Pitch Match</h2>
-          </div>
-
-          <div className="rounded-xl border border-slate-800/70 bg-slate-950/40 p-4">
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Level {level.id}</p>
-            <p className="text-lg font-semibold text-slate-100">{level.name}</p>
-            <p className="text-sm text-slate-400">{level.description}</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <label className="text-sm font-medium text-slate-300">
-              Playback instrument
-              <select
-                className="mt-2 w-full rounded-xl border border-slate-700/80 bg-slate-950/60 p-2 text-sm text-slate-100 focus:border-cyan-400/80 focus:ring-2 focus:ring-cyan-400/40"
-                value={state.selectedInstrument}
-                onChange={(event) => actions.setInstrument(event.target.value as Instrument)}
-              >
-                {INSTRUMENTS.map(instrument => (
-                  <option key={instrument} value={instrument}>
-                    {instrument}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="flex items-end">
-              <Button
-                onClick={handleStartGame}
-                variant="primary"
-                className="w-full"
-                disabled={!isInitialized}
-              >
-                Begin session
-              </Button>
-            </div>
-          </div>
+        <div className="space-y-4">
+          <SessionSetup
+            title="Build your round"
+            levels={PITCH_LEVELS}
+            selectedLevel={state.selectedLevel}
+            onLevelChange={actions.setLevel}
+            instruments={SESSION_INSTRUMENTS}
+            selectedInstrument={state.selectedInstrument}
+            onInstrumentChange={actions.setInstrument}
+            instrumentTitle="Playback instrument"
+            detailItems={detailItems}
+            onStart={handleStartGame}
+            disabled={!isInitialized}
+          />
 
           {!isInitialized && (
-            <p className="text-sm text-amber-200">Audio engine loading...</p>
+            <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 p-4 text-center">
+              <p className="text-amber-200">Audio engine loading...</p>
+            </div>
           )}
         </div>
       );

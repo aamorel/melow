@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { audioEngine } from '../services/audioEngine';
 import type { Note, Instrument } from '../types/game';
 
 export function useAudio() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const playbackTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     const initAudio = async () => {
@@ -17,6 +18,23 @@ export function useAudio() {
     };
 
     initAudio();
+
+    return () => {
+      if (playbackTimeoutRef.current !== null) {
+        window.clearTimeout(playbackTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const schedulePlaybackStop = useCallback((durationMs: number) => {
+    if (playbackTimeoutRef.current !== null) {
+      window.clearTimeout(playbackTimeoutRef.current);
+    }
+
+    playbackTimeoutRef.current = window.setTimeout(() => {
+      setIsPlaying(false);
+      playbackTimeoutRef.current = null;
+    }, durationMs);
   }, []);
 
   const playNote = useCallback(async (note: Note, instrument: Instrument, duration = 1.0) => {
@@ -28,9 +46,9 @@ export function useAudio() {
     } catch (error) {
       console.error('Failed to play note:', error);
     } finally {
-      setTimeout(() => setIsPlaying(false), duration * 1000);
+      schedulePlaybackStop(duration * 1000);
     }
-  }, [isInitialized]);
+  }, [isInitialized, schedulePlaybackStop]);
 
   const playReferenceTone = useCallback(async (note: Note, duration = 1.1) => {
     if (!isInitialized) return;
@@ -41,22 +59,23 @@ export function useAudio() {
     } catch (error) {
       console.error('Failed to play reference tone:', error);
     } finally {
-      setTimeout(() => setIsPlaying(false), duration * 1000);
+      schedulePlaybackStop(duration * 1000);
     }
-  }, [isInitialized]);
+  }, [isInitialized, schedulePlaybackStop]);
 
   const playInterval = useCallback(async (note1: Note, note2: Note, instrument: Instrument, gap = 0.1) => {
     if (!isInitialized) return;
     
+    const totalDuration = (2 + gap) * 1000;
     setIsPlaying(true);
     try {
       await audioEngine.playInterval(note1.frequency, note2.frequency, instrument, gap);
     } catch (error) {
       console.error('Failed to play interval:', error);
     } finally {
-      setTimeout(() => setIsPlaying(false), (2.1 + gap) * 1000);
+      schedulePlaybackStop(totalDuration);
     }
-  }, [isInitialized]);
+  }, [isInitialized, schedulePlaybackStop]);
 
   const playChord = useCallback(async (notes: Note[], instrument: Instrument, duration = 1.2) => {
     if (!isInitialized || notes.length === 0) return;
@@ -67,9 +86,9 @@ export function useAudio() {
     } catch (error) {
       console.error('Failed to play chord:', error);
     } finally {
-      setTimeout(() => setIsPlaying(false), duration * 1000);
+      schedulePlaybackStop(duration * 1000);
     }
-  }, [isInitialized]);
+  }, [isInitialized, schedulePlaybackStop]);
 
   return {
     isInitialized,

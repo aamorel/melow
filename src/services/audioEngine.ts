@@ -1,9 +1,12 @@
 import type { Instrument } from '../types/game';
 
+const PIANO_DECAY_MULTIPLIER = 1.6;
+
 export class AudioEngine {
   private audioContext: AudioContext | null = null;
   private masterGain: GainNode | null = null;
   private volume = 0.7;
+  private hammerBuffer: AudioBuffer | null = null;
 
   async initialize(): Promise<void> {
     if (this.audioContext) return;
@@ -152,22 +155,70 @@ export class AudioEngine {
     if (!this.audioContext || !this.masterGain) return;
     const output = destination ?? this.masterGain;
 
-    const oscillator = this.audioContext.createOscillator();
-    const gainNode = this.audioContext.createGain();
+    const mixGain = this.audioContext.createGain();
+    const filter = this.audioContext.createBiquadFilter();
 
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(frequency, startTime);
+    mixGain.gain.setValueAtTime(0.0001, startTime);
+    mixGain.gain.linearRampToValueAtTime(0.9, startTime + 0.004);
+    const tailDuration = duration * PIANO_DECAY_MULTIPLIER;
+    mixGain.gain.exponentialRampToValueAtTime(0.0001, startTime + tailDuration);
 
-    // Piano-like envelope
-    gainNode.gain.setValueAtTime(0, startTime);
-    gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.01);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+    filter.type = 'lowpass';
+    const brightCutoff = Math.min(12000, Math.max(1500, frequency * 12));
+    const bodyCutoff = Math.min(6000, Math.max(1200, frequency * 5));
+    filter.frequency.setValueAtTime(brightCutoff, startTime);
+    filter.frequency.exponentialRampToValueAtTime(bodyCutoff, startTime + 0.08);
+    filter.Q.setValueAtTime(0.8, startTime);
 
-    oscillator.connect(gainNode);
-    gainNode.connect(output);
+    mixGain.connect(filter);
+    filter.connect(output);
 
-    oscillator.start(startTime);
-    oscillator.stop(startTime + duration);
+    const partials = [
+      { multiple: 1, amplitude: 0.25, detune: -3 },
+      { multiple: 1, amplitude: 0.23, detune: 3 },
+      { multiple: 2, amplitude: 0.14, detune: 0 },
+      { multiple: 3, amplitude: 0.09, detune: -2 },
+      { multiple: 4, amplitude: 0.06, detune: 2 },
+      { multiple: 5, amplitude: 0.04, detune: 0 },
+    ];
+
+    partials.forEach(({ multiple, amplitude, detune }) => {
+      const oscillator = this.audioContext!.createOscillator();
+      const partialGain = this.audioContext!.createGain();
+
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(frequency * multiple, startTime);
+      oscillator.detune.setValueAtTime(detune, startTime);
+      partialGain.gain.setValueAtTime(amplitude, startTime);
+
+      oscillator.connect(partialGain);
+      partialGain.connect(mixGain);
+
+      oscillator.start(startTime);
+      oscillator.stop(startTime + tailDuration);
+    });
+
+    const hammerBuffer = this.ensureHammerBuffer();
+    if (hammerBuffer) {
+      const hammerNoise = this.audioContext.createBufferSource();
+      const noiseFilter = this.audioContext.createBiquadFilter();
+      const noiseGain = this.audioContext.createGain();
+
+      hammerNoise.buffer = hammerBuffer;
+      noiseFilter.type = 'highpass';
+      noiseFilter.frequency.setValueAtTime(Math.min(8000, frequency * 4), startTime);
+
+      noiseGain.gain.setValueAtTime(0.0001, startTime);
+      noiseGain.gain.linearRampToValueAtTime(0.08, startTime + 0.005);
+      noiseGain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.03);
+
+      hammerNoise.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(filter);
+
+      hammerNoise.start(startTime);
+      hammerNoise.stop(startTime + 0.035);
+    }
   }
 
   private playSaxophone(frequency: number, duration: number, startTime: number, destination?: AudioNode): void {
@@ -309,6 +360,22 @@ export class AudioEngine {
     await this.playNote(freq2, instrument, 1.0);
   }
 
+  private ensureHammerBuffer(): AudioBuffer | null {
+    if (!this.audioContext) return null;
+    if (this.hammerBuffer) return this.hammerBuffer;
+
+    const length = Math.floor(this.audioContext.sampleRate * 0.03);
+    const buffer = this.audioContext.createBuffer(1, length, this.audioContext.sampleRate);
+    const data = buffer.getChannelData(0);
+
+    for (let i = 0; i < length; i += 1) {
+      const decay = 1 - i / length;
+      data[i] = (Math.random() * 2 - 1) * decay;
+    }
+
+    this.hammerBuffer = buffer;
+    return buffer;
+  }
 }
 
 export const audioEngine = new AudioEngine();

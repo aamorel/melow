@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { GameControls } from '../../components/Game/GameControls';
 import { IntervalPlayer } from '../../components/Game/IntervalPlayer';
 import { AnswerButtons } from '../../components/Game/AnswerButtons';
@@ -8,7 +8,7 @@ import { SessionHistory } from '../../components/Stats/SessionHistory';
 import { Button } from '../../components/UI/Button';
 import { useGameState } from '../../hooks/useGameState';
 import { useAudio } from '../../hooks/useAudio';
-import { GAME_LEVELS, INTERVALS } from '../../utils/constants';
+import { ANSWER_FEEDBACK_TIMINGS, GAME_LEVELS } from '../../utils/constants';
 import type { Interval } from '../../types/game';
 
 type ListeningView = 'training' | 'stats';
@@ -21,6 +21,7 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
   const [currentView, setCurrentView] = useState<ListeningView>('training');
   const { state, actions, computed } = useGameState();
   const { isInitialized } = useAudio();
+  const { nextQuestion } = actions;
 
   const handleStartGame = () => {
     actions.startGame(state.selectedLevel, state.selectedInstrument);
@@ -30,13 +31,28 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
     actions.submitAnswer(answer, responseTime);
   };
 
-  const handleNextQuestion = () => {
-    actions.nextQuestion();
-  };
-
   const handleEndGame = () => {
     actions.endGame();
   };
+
+  useEffect(() => {
+    if (currentView !== 'training' || !state.showResult || !state.currentSession) return;
+
+    const answer = state.currentSession.answers[state.currentQuestionIndex];
+    if (!answer) return;
+
+    const delayMs = answer.isCorrect
+      ? ANSWER_FEEDBACK_TIMINGS.correctMs
+      : ANSWER_FEEDBACK_TIMINGS.incorrectMs;
+
+    const timer = window.setTimeout(() => {
+      nextQuestion();
+    }, delayMs);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [currentView, state.showResult, state.currentQuestionIndex, state.currentSession, nextQuestion]);
 
   const renderTrainingView = () => {
     const session = state.currentSession;
@@ -111,34 +127,9 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
               availableIntervals={currentLevel.intervals}
               onAnswer={handleAnswer}
               questionId={computed.currentQuestion.id}
+              correctAnswer={computed.currentQuestion.correctInterval}
               disabled={state.showResult}
             />
-          </div>
-        )}
-
-        {state.showResult && computed.currentQuestion && (
-          <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-4 text-center shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur">
-            {session.answers[state.currentQuestionIndex]?.isCorrect ? (
-              <div className="text-emerald-300">
-                <h3 className="text-xl font-semibold mb-1">Correct</h3>
-                <p className="mb-3 text-slate-300">Interval: {INTERVALS[computed.currentQuestion.correctInterval].name}</p>
-              </div>
-            ) : (
-              <div className="text-rose-300">
-                <h3 className="text-xl font-semibold mb-1">Incorrect</h3>
-                <p className="mb-3 text-slate-300">Answer: {INTERVALS[computed.currentQuestion.correctInterval].name}</p>
-              </div>
-            )}
-
-            {state.currentQuestionIndex < session.questions.length - 1 ? (
-              <Button onClick={handleNextQuestion} variant="primary" size="lg">
-                Next Question →
-              </Button>
-            ) : (
-              <Button onClick={handleNextQuestion} variant="success" size="lg">
-                Finish Session
-              </Button>
-            )}
           </div>
         )}
       </div>

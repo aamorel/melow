@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import type { ChordQuestion } from '../../types/chord';
 import { useAudio } from '../../hooks/useAudio';
 import { Button } from '../../components/UI/Button';
+import { PlaybackIcon } from '../../components/UI/PlaybackIcon';
 
 interface ChordPlayerProps {
   question: ChordQuestion;
@@ -10,17 +11,36 @@ interface ChordPlayerProps {
 
 export function ChordPlayer({ question, disabled = false }: ChordPlayerProps) {
   const { playChord, isPlaying } = useAudio();
-  const [playCount, setPlayCount] = useState(0);
 
-  useEffect(() => {
-    setPlayCount(0);
-  }, [question.id]);
-
-  const handlePlay = async () => {
+  const handlePlay = useCallback(async () => {
     if (disabled || isPlaying) return;
     await playChord(question.notes, question.instrument);
-    setPlayCount(prev => prev + 1);
-  };
+  }, [disabled, isPlaying, playChord, question.instrument, question.notes]);
+
+  useEffect(() => {
+    if (disabled) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.code !== 'Space') return;
+      const target = event.target as HTMLElement | null;
+      if (target && (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'BUTTON' ||
+        target.isContentEditable
+      )) {
+        return;
+      }
+
+      event.preventDefault();
+      void handlePlay();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [disabled, handlePlay]);
 
   return (
     <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-4 text-center shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur">
@@ -36,16 +56,13 @@ export function ChordPlayer({ question, disabled = false }: ChordPlayerProps) {
         onClick={handlePlay}
         disabled={disabled || isPlaying}
         size="lg"
-        className="mb-2"
+        className="mb-2 h-12 w-12 rounded-full p-0"
+        aria-label={isPlaying ? 'Playing chord' : 'Play chord'}
+        title={isPlaying ? 'Playing chord' : 'Play chord'}
       >
-        {isPlaying ? 'Playing...' : 'Play Chord'}
+        <span className="sr-only">{isPlaying ? 'Playing' : 'Play chord'}</span>
+        <PlaybackIcon state={isPlaying ? 'pause' : 'play'} className="h-5 w-5" />
       </Button>
-
-      {playCount > 0 && (
-        <p className="text-xs text-slate-500">
-          Played {playCount} time{playCount !== 1 ? 's' : ''}
-        </p>
-      )}
     </div>
   );
 }

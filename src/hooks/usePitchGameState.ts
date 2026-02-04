@@ -18,7 +18,7 @@ const initialState: PitchGameState = {
   currentQuestionIndex: 0,
   showResult: false,
   selectedLevel: 1,
-  selectedInstrument: 'voice',
+  selectedInstrument: 'piano',
 };
 
 function pitchReducer(state: PitchGameState, action: PitchAction): PitchGameState {

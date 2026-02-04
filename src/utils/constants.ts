@@ -135,3 +135,9 @@ export const PITCH_LEVELS: PitchLevel[] = [
 ];
 
 export const INSTRUMENTS = ['piano', 'saxophone', 'guitar', 'flute', 'violin', 'voice'] as const;
+
+export const ANSWER_FEEDBACK_TIMINGS = {
+  correctMs: 650,
+  incorrectMs: 1200,
+  revealCorrectMs: 420,
+} as const;
