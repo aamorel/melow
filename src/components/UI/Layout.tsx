@@ -2,9 +2,10 @@ import { ReactNode } from 'react';
 
 interface LayoutProps {
   children: ReactNode;
+  headerActions?: ReactNode;
 }
 
-export function Layout({ children }: LayoutProps) {
+export function Layout({ children, headerActions }: LayoutProps) {
   return (
     <div className="min-h-screen bg-[#0b0f16] text-slate-100">
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
@@ -20,6 +21,11 @@ export function Layout({ children }: LayoutProps) {
             <h1 className="text-2xl font-semibold tracking-tight">Melow</h1>
           </div>
           <div className="hidden sm:block h-px flex-1 bg-gradient-to-r from-slate-800 via-slate-700 to-transparent"></div>
+          {headerActions ? (
+            <div className="flex items-center justify-end gap-2">
+              {headerActions}
+            </div>
+          ) : null}
         </header>
 
         <main className="flex-1 animate-fade-in">

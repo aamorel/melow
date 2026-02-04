@@ -18,6 +18,8 @@ export type {
 
 export type { ExerciseType } from './exercise';
 
+export type { AggregatedStats } from './stats';
+
 export type {
   PitchLevel,
   PitchQuestion,
