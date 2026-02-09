@@ -7,17 +7,18 @@ interface LayoutProps {
 
 export function Layout({ children, headerActions }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-[#0b0f16] text-slate-100">
+    <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-32 right-[-10%] h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl"></div>
-        <div className="absolute bottom-[-20%] left-[-10%] h-96 w-96 rounded-full bg-emerald-500/20 blur-3xl"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.08),_transparent_55%)]"></div>
+        <div className="absolute -top-32 right-[-10%] h-72 w-72 rounded-full bg-amber-400/25 blur-3xl"></div>
+        <div className="absolute bottom-[-20%] left-[-10%] h-96 w-96 rounded-full bg-rose-400/20 blur-3xl"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(251,191,36,0.12),_transparent_60%)]"></div>
+        <div className="absolute inset-0 bg-grain opacity-20"></div>
       </div>
 
-      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-6">
-        <header className="mb-10 flex items-center gap-4">
+      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-8 sm:px-8 lg:px-10">
+        <header className="mb-12 flex items-center gap-4">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-cyan-400/90 to-emerald-400/90 shadow-[0_0_30px_rgba(34,211,238,0.35)]"></div>
+            <div className="h-11 w-11 rounded-3xl bg-gradient-to-br from-amber-300/90 to-rose-300/90 shadow-[0_0_30px_rgba(243,194,107,0.3)]"></div>
             <h1 className="text-2xl font-semibold tracking-tight">Melow</h1>
           </div>
           <div className="hidden sm:block h-px flex-1 bg-gradient-to-r from-slate-800 via-slate-700 to-transparent"></div>

@@ -140,7 +140,7 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400/90 to-blue-500/80 text-lg font-semibold text-slate-950">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300/90 to-orange-400/80 text-lg font-semibold text-slate-950">
             L
           </div>
           <h2 className="text-2xl font-semibold">Listening</h2>

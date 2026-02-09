@@ -20,21 +20,21 @@ const EXERCISES: ExerciseDefinition[] = [
     id: 'listening',
     name: 'Listening',
     tags: ['Intervals', 'Memory'],
-    accent: 'from-cyan-400/90 to-blue-500/80',
+    accent: 'from-amber-300/90 to-orange-400/80',
     icon: 'L',
   },
   {
     id: 'chords',
     name: 'Chords',
     tags: ['Harmony', 'Quality'],
-    accent: 'from-amber-400/90 to-orange-500/80',
+    accent: 'from-rose-300/90 to-amber-400/80',
     icon: 'C',
   },
   {
     id: 'pitch',
     name: 'Pitch Match',
     tags: ['Voice', 'Accuracy'],
-    accent: 'from-emerald-400/90 to-teal-500/80',
+    accent: 'from-orange-300/90 to-amber-500/80',
     icon: 'P',
   },
 ];
@@ -61,7 +61,7 @@ function App() {
         </button>
       )}
     >
-      <div className="grid gap-6">
+      <div className="grid gap-8">
         <div>
           {activeExercise ? (
             activeExercise.id === 'listening' ? (
@@ -72,12 +72,12 @@ function App() {
               <PitchExercise onBack={() => setSelectedExercise(null)} />
             ) : null
           ) : (
-            <div className="space-y-8">
+            <div className="space-y-10">
               <div className="flex items-center justify-between">
                 <h2 className="text-3xl font-semibold tracking-tight">Exercises</h2>
               </div>
 
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 stagger-fade">
+              <div className="grid grid-cols-1 gap-7 md:grid-cols-2 stagger-fade">
                 {EXERCISES.map((exercise) => (
                   <button
                     key={exercise.id}
@@ -91,13 +91,13 @@ function App() {
                       event.currentTarget.style.setProperty('--glow-x', `${x}px`);
                       event.currentTarget.style.setProperty('--glow-y', `${y}px`);
                     }}
-                    className="group relative overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 text-left shadow-[0_20px_60px_rgba(0,0,0,0.35)] transition duration-200 hover:-translate-y-1 hover:border-slate-700/80 hover:bg-slate-900/80"
+                    className="group relative overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-900/60 p-7 text-left shadow-[0_20px_60px_rgba(0,0,0,0.35)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-slate-700/80 hover:bg-slate-900/80"
                   >
                     <div
                       className="absolute inset-0 opacity-0 transition duration-200 group-hover:opacity-100"
                       style={{
                         background:
-                          'radial-gradient(420px circle at var(--glow-x, 50%) var(--glow-y, 20%), rgba(56,189,248,0.12), transparent 60%)',
+                          'radial-gradient(420px circle at var(--glow-x, 50%) var(--glow-y, 20%), rgba(251,191,36,0.12), transparent 60%)',
                       }}
                     ></div>
 
