@@ -8,6 +8,8 @@ const TARGET_SIZE = 1.8;
 const HOVER_SPEED = 0.6;
 const HOVER_AMPLITUDE = 0.08;
 const ROTATION_SPEED = 0.12;
+const THEME_TINT = new THREE.Color('#f59e0b');
+const THEME_TINT_STRENGTH = 0.18;
 
 export function HeadphoneScene() {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -105,6 +107,17 @@ export function HeadphoneScene() {
         if (child instanceof THREE.Mesh) {
           child.castShadow = false;
           child.receiveShadow = false;
+          const materials = Array.isArray(child.material) ? child.material : [child.material];
+          materials.forEach((material) => {
+            if (
+              material instanceof THREE.MeshStandardMaterial ||
+              material instanceof THREE.MeshPhysicalMaterial
+            ) {
+              material.color.lerp(THEME_TINT, THEME_TINT_STRENGTH);
+              material.roughness = Math.max(0.35, material.roughness);
+              material.metalness = Math.min(0.6, material.metalness);
+            }
+          });
           if (Array.isArray(child.material)) {
             child.material.forEach((material) => {
               material.needsUpdate = true;
