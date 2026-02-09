@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Layout } from './components/UI/Layout';
 import { AccountSidePanel } from './components/UI/AccountSidePanel';
+import { HeadphoneScene } from './components/UI/HeadphoneScene';
 import { ListeningExercise } from './features/listening/ListeningExercise';
 import { PitchExercise } from './features/pitch/PitchExercise';
 import { ChordExercise } from './features/chords/ChordExercise';
@@ -72,61 +73,66 @@ function App() {
               <PitchExercise onBack={() => setSelectedExercise(null)} />
             ) : null
           ) : (
-            <div className="space-y-10">
-              <div className="flex items-center justify-between">
-                <h2 className="text-3xl font-semibold tracking-tight">Exercises</h2>
-              </div>
+            <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_380px]">
+              <div className="space-y-8">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-3xl font-semibold tracking-tight">Exercises</h2>
+                </div>
 
-              <div className="grid grid-cols-1 gap-7 md:grid-cols-2 stagger-fade">
-                {EXERCISES.map((exercise) => (
-                  <button
-                    key={exercise.id}
-                    type="button"
-                    onClick={() => setSelectedExercise(exercise.id)}
-                    aria-label={`Open ${exercise.name}`}
-                    onMouseMove={(event) => {
-                      const rect = event.currentTarget.getBoundingClientRect();
-                      const x = event.clientX - rect.left;
-                      const y = event.clientY - rect.top;
-                      event.currentTarget.style.setProperty('--glow-x', `${x}px`);
-                      event.currentTarget.style.setProperty('--glow-y', `${y}px`);
-                    }}
-                    className="group relative overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-900/60 p-7 text-left shadow-[0_20px_60px_rgba(0,0,0,0.35)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-slate-700/80 hover:bg-slate-900/80"
-                  >
-                    <div
-                      className="absolute inset-0 opacity-0 transition duration-200 group-hover:opacity-100"
-                      style={{
-                        background:
-                          'radial-gradient(420px circle at var(--glow-x, 50%) var(--glow-y, 20%), rgba(251,191,36,0.12), transparent 60%)',
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2 stagger-fade">
+                  {EXERCISES.map((exercise) => (
+                    <button
+                      key={exercise.id}
+                      type="button"
+                      onClick={() => setSelectedExercise(exercise.id)}
+                      aria-label={`Open ${exercise.name}`}
+                      onMouseMove={(event) => {
+                        const rect = event.currentTarget.getBoundingClientRect();
+                        const x = event.clientX - rect.left;
+                        const y = event.clientY - rect.top;
+                        event.currentTarget.style.setProperty('--glow-x', `${x}px`);
+                        event.currentTarget.style.setProperty('--glow-y', `${y}px`);
                       }}
-                    ></div>
+                      className="group relative overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-900/60 p-5 text-left shadow-[0_18px_50px_rgba(0,0,0,0.32)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-slate-700/80 hover:bg-slate-900/80"
+                    >
+                      <div
+                        className="absolute inset-0 opacity-0 transition duration-200 group-hover:opacity-100"
+                        style={{
+                          background:
+                            'radial-gradient(360px circle at var(--glow-x, 50%) var(--glow-y, 20%), rgba(251,191,36,0.12), transparent 60%)',
+                        }}
+                      ></div>
 
-                    <div className="relative flex h-full flex-col justify-between gap-6">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <div className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br ${exercise.accent} text-lg font-semibold text-slate-950`}>
-                            {exercise.icon}
+                      <div className="relative flex h-full flex-col justify-between gap-5">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <div className={`flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br ${exercise.accent} text-base font-semibold text-slate-950`}>
+                              {exercise.icon}
+                            </div>
+                            <h3 className="mt-3 text-xl font-semibold">{exercise.name}</h3>
                           </div>
-                          <h3 className="mt-4 text-2xl font-semibold">{exercise.name}</h3>
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-700/80 bg-slate-900/70 text-xs text-slate-300 transition group-hover:border-slate-500 group-hover:text-white">
+                            &rarr;
+                          </div>
                         </div>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-700/80 bg-slate-900/70 text-sm text-slate-300 transition group-hover:border-slate-500 group-hover:text-white">
-                          &rarr;
-                        </div>
-                      </div>
 
-                      <div className="flex flex-wrap gap-2">
-                        {exercise.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="rounded-full border border-slate-800/80 bg-slate-900/70 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-slate-400"
-                          >
-                            {tag}
-                          </span>
-                        ))}
+                        <div className="flex flex-wrap gap-2">
+                          {exercise.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="rounded-full border border-slate-800/80 bg-slate-900/70 px-2.5 py-0.5 text-[10px] uppercase tracking-[0.2em] text-slate-400"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="lg:pt-6">
+                <HeadphoneScene />
               </div>
             </div>
           )}
