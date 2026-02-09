@@ -70,6 +70,10 @@
     animation: answer-pop 0.7s ease-out;
   }
 
+  .streak-pulse {
+    animation: streak-pulse 0.7s ease-out;
+  }
+
   .bg-grain {
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.4'/></svg>");
     background-size: 160px 160px;
@@ -125,5 +129,20 @@
   }
   100% {
     transform: scale(1);
+  }
+}
+
+@keyframes streak-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(251, 191, 36, 0);
+  }
+  45% {
+    transform: scale(1.03);
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.35);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(251, 191, 36, 0);
   }
 }
