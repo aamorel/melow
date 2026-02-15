@@ -1,3 +1,4 @@
+import { useCallback, useEffect } from 'react';
 import type { Instrument } from '../../types/game';
 import type { PitchAnswer, PitchQuestion, PitchSession } from '../../types/pitch';
 import { ScoreDisplay } from '../../components/Game/ScoreDisplay';
@@ -5,6 +6,9 @@ import { PitchMeter } from '../../components/Game/PitchMeter';
 import { SessionSetup, SESSION_INSTRUMENTS } from '../../components/Game/SessionSetup';
 import { SessionCompleteCard } from '../../components/Game/SessionCompleteCard';
 import { Button } from '../../components/UI/Button';
+import { PlaybackButton } from '../../components/Game/PlaybackButton';
+import { usePlaybackPulse } from '../../hooks/usePlaybackPulse';
+import { usePlaybackHotkey } from '../../hooks/usePlaybackHotkey';
 import { PITCH_LEVELS } from '../../utils/constants';
 
 type DetectedNoteData = {
@@ -139,6 +143,23 @@ export function PitchTrainingView({
 
   const answerForQuestion = answers[currentQuestionIndex];
   const playLabel = attemptStartTime === null ? 'Play' : 'Replay';
+  const { pulsePhase, pulseTick, triggerPulse, resetPulse } = usePlaybackPulse({ pulses: 1 });
+  const canPlay = isInitialized && !showResult;
+
+  const handlePlayNote = useCallback(() => {
+    if (!canPlay) return;
+    triggerPulse();
+    onPlayNote();
+  }, [canPlay, onPlayNote, triggerPulse]);
+
+  useEffect(() => {
+    resetPulse();
+  }, [currentQuestion?.id, resetPulse]);
+
+  usePlaybackHotkey({
+    enabled: canPlay,
+    onTrigger: handlePlayNote,
+  });
 
   return (
     <div className="space-y-4">
@@ -155,14 +176,13 @@ export function PitchTrainingView({
               <p className="text-sm text-slate-400">Target</p>
               <p className="text-3xl font-semibold text-slate-100">{targetLabel}</p>
             </div>
-            <Button
-              onClick={onPlayNote}
-              variant="primary"
-              size="lg"
-              disabled={!isInitialized || showResult}
-            >
-              {playLabel}
-            </Button>
+            <PlaybackButton
+              onClick={handlePlayNote}
+              disabled={!canPlay}
+              label={playLabel}
+              pulsePhase={pulsePhase}
+              pulseTick={pulseTick}
+            />
           </div>
 
           <div className="space-y-2 text-sm text-slate-400">

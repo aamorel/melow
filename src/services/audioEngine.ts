@@ -1,11 +1,16 @@
 import type { Instrument } from '../types/game';
 import { instrumentVoices, type AudioVoiceContext } from './audioInstruments';
 
+const PLAYBACK_TAIL_MULTIPLIER = 1.8;
+const PLAYBACK_CLEANUP_PADDING_MS = 150;
+const PLAYBACK_STOP_FADE_SECONDS = 0.02;
+
 export class AudioEngine {
   private audioContext: AudioContext | null = null;
   private masterGain: GainNode | null = null;
   private volume = 0.7;
   private hammerBuffer: AudioBuffer | null = null;
+  private activePlaybackBuses = new Set<GainNode>();
 
   async initialize(): Promise<void> {
     if (this.audioContext) return;
@@ -33,55 +38,46 @@ export class AudioEngine {
   }
 
   async playNote(frequency: number, instrument: Instrument, duration = 1.0): Promise<void> {
-    if (!this.audioContext || !this.masterGain) {
-      await this.initialize();
-    }
+    const voiceContext = await this.preparePlayback();
+    if (!voiceContext || !this.audioContext) return;
 
-    if (!this.audioContext || !this.masterGain) return;
-    if (this.audioContext.state === 'suspended') {
-      await this.audioContext.resume();
-    }
+    this.beginPlayback();
+    const playbackBus = this.createPlaybackBus();
+    if (!playbackBus) return;
 
     const now = this.audioContext.currentTime;
-    const voiceContext = this.getVoiceContext();
-    if (!voiceContext) return;
-    instrumentVoices[instrument](voiceContext, frequency, duration, now);
+    instrumentVoices[instrument](voiceContext, frequency, duration, now, playbackBus);
+    this.scheduleBusCleanup(playbackBus, this.cleanupDurationMs(duration));
   }
 
   async playChord(frequencies: number[], instrument: Instrument, duration = 1.2): Promise<void> {
-    if (!this.audioContext || !this.masterGain) {
-      await this.initialize();
-    }
+    const voiceContext = await this.preparePlayback();
+    if (!voiceContext || !this.audioContext || frequencies.length === 0) return;
 
-    if (!this.audioContext || !this.masterGain) return;
-    if (this.audioContext.state === 'suspended') {
-      await this.audioContext.resume();
-    }
-
-    if (frequencies.length === 0) return;
+    this.beginPlayback();
+    const playbackBus = this.createPlaybackBus();
+    if (!playbackBus) return;
 
     const now = this.audioContext.currentTime;
     const chordGain = this.audioContext.createGain();
     const gainScale = 1 / Math.sqrt(Math.max(1, frequencies.length));
     chordGain.gain.setValueAtTime(gainScale, now);
-    chordGain.connect(this.masterGain);
-    const voiceContext = this.getVoiceContext();
-    if (!voiceContext) return;
+    chordGain.connect(playbackBus);
 
     frequencies.forEach((frequency) => {
       instrumentVoices[instrument](voiceContext, frequency, duration, now, chordGain);
     });
+
+    this.scheduleBusCleanup(playbackBus, this.cleanupDurationMs(duration));
   }
 
   async playReferenceTone(frequency: number, duration = 1.1): Promise<void> {
-    if (!this.audioContext || !this.masterGain) {
-      await this.initialize();
-    }
+    const voiceContext = await this.preparePlayback();
+    if (!voiceContext || !this.audioContext) return;
 
-    if (!this.audioContext || !this.masterGain) return;
-    if (this.audioContext.state === 'suspended') {
-      await this.audioContext.resume();
-    }
+    this.beginPlayback();
+    const playbackBus = this.createPlaybackBus();
+    if (!playbackBus) return;
 
     const now = this.audioContext.currentTime;
 
@@ -106,19 +102,98 @@ export class AudioEngine {
 
     fundamental.connect(fundamentalGain);
     overtone.connect(overtoneGain);
-    fundamentalGain.connect(this.masterGain);
-    overtoneGain.connect(this.masterGain);
+    fundamentalGain.connect(playbackBus);
+    overtoneGain.connect(playbackBus);
 
     fundamental.start(now);
     overtone.start(now);
     fundamental.stop(now + duration);
     overtone.stop(now + duration);
+
+    this.scheduleBusCleanup(playbackBus, this.cleanupDurationMs(duration));
   }
 
   async playInterval(freq1: number, freq2: number, instrument: Instrument, gap = 0.1): Promise<void> {
-    await this.playNote(freq1, instrument, 1.0);
-    await new Promise(resolve => setTimeout(resolve, (1.0 + gap) * 1000));
-    await this.playNote(freq2, instrument, 1.0);
+    const voiceContext = await this.preparePlayback();
+    if (!voiceContext || !this.audioContext) return;
+
+    this.beginPlayback();
+    const playbackBus = this.createPlaybackBus();
+    if (!playbackBus) return;
+
+    const now = this.audioContext.currentTime;
+    const noteDuration = 1.0;
+    const secondNoteStart = now + noteDuration + gap;
+
+    instrumentVoices[instrument](voiceContext, freq1, noteDuration, now, playbackBus);
+    instrumentVoices[instrument](voiceContext, freq2, noteDuration, secondNoteStart, playbackBus);
+
+    this.scheduleBusCleanup(playbackBus, this.cleanupDurationMs(noteDuration * 2 + gap));
+  }
+
+  private async preparePlayback(): Promise<AudioVoiceContext | null> {
+    if (!this.audioContext || !this.masterGain) {
+      await this.initialize();
+    }
+
+    if (!this.audioContext || !this.masterGain) return null;
+    if (this.audioContext.state === 'suspended') {
+      await this.audioContext.resume();
+    }
+
+    return this.getVoiceContext();
+  }
+
+  private beginPlayback(): void {
+    this.stopActivePlayback();
+  }
+
+  private stopActivePlayback(): void {
+    if (this.activePlaybackBuses.size === 0) return;
+
+    if (!this.audioContext) {
+      this.activePlaybackBuses.clear();
+      return;
+    }
+
+    const now = this.audioContext.currentTime;
+    this.activePlaybackBuses.forEach((bus) => {
+      bus.gain.cancelScheduledValues(now);
+      bus.gain.setValueAtTime(bus.gain.value, now);
+      bus.gain.linearRampToValueAtTime(0.0001, now + PLAYBACK_STOP_FADE_SECONDS);
+      window.setTimeout(() => {
+        try {
+          bus.disconnect();
+        } catch {
+          // Ignore disconnect errors if already detached.
+        }
+      }, (PLAYBACK_STOP_FADE_SECONDS * 1000) + 20);
+    });
+    this.activePlaybackBuses.clear();
+  }
+
+  private createPlaybackBus(): GainNode | null {
+    if (!this.audioContext || !this.masterGain) return null;
+    const playbackBus = this.audioContext.createGain();
+    playbackBus.gain.setValueAtTime(1, this.audioContext.currentTime);
+    playbackBus.connect(this.masterGain);
+    this.activePlaybackBuses.add(playbackBus);
+    return playbackBus;
+  }
+
+  private scheduleBusCleanup(playbackBus: GainNode, durationMs: number): void {
+    window.setTimeout(() => {
+      try {
+        playbackBus.disconnect();
+      } catch {
+        // Ignore disconnect errors if already detached.
+      }
+      this.activePlaybackBuses.delete(playbackBus);
+    }, durationMs);
+  }
+
+  private cleanupDurationMs(durationSeconds: number): number {
+    return Math.ceil(durationSeconds * 1000 * PLAYBACK_TAIL_MULTIPLIER + PLAYBACK_CLEANUP_PADDING_MS);
   }
 
   private getVoiceContext(): AudioVoiceContext | null {

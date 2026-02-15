@@ -1,8 +1,9 @@
 import { useCallback, useEffect } from 'react';
 import type { ChordQuestion } from '../../types/chord';
 import { useAudio } from '../../hooks/useAudio';
-import { Button } from '../../components/UI/Button';
-import { PlaybackIcon } from '../../components/UI/PlaybackIcon';
+import { usePlaybackPulse } from '../../hooks/usePlaybackPulse';
+import { usePlaybackHotkey } from '../../hooks/usePlaybackHotkey';
+import { PlaybackButton } from '../../components/Game/PlaybackButton';
 
 interface ChordPlayerProps {
   question: ChordQuestion;
@@ -11,36 +12,24 @@ interface ChordPlayerProps {
 
 export function ChordPlayer({ question, disabled = false }: ChordPlayerProps) {
   const { playChord, isPlaying } = useAudio();
+  const { pulsePhase, pulseTick, triggerPulse, resetPulse } = usePlaybackPulse({ pulses: 1 });
 
   const handlePlay = useCallback(async () => {
     if (disabled || isPlaying) return;
+    triggerPulse();
     await playChord(question.notes, question.instrument);
-  }, [disabled, isPlaying, playChord, question.instrument, question.notes]);
+  }, [disabled, isPlaying, playChord, question.instrument, question.notes, triggerPulse]);
+
+  usePlaybackHotkey({
+    enabled: !disabled,
+    onTrigger: () => {
+      void handlePlay();
+    },
+  });
 
   useEffect(() => {
-    if (disabled) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.code !== 'Space') return;
-      const target = event.target as HTMLElement | null;
-      if (target && (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.tagName === 'BUTTON' ||
-        target.isContentEditable
-      )) {
-        return;
-      }
-
-      event.preventDefault();
-      void handlePlay();
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [disabled, handlePlay]);
+    resetPulse();
+  }, [question.id, resetPulse]);
 
   return (
     <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-4 text-center shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur">
@@ -52,17 +41,16 @@ export function ChordPlayer({ question, disabled = false }: ChordPlayerProps) {
         </p>
       </div>
 
-      <Button
+      <PlaybackButton
         onClick={handlePlay}
         disabled={disabled || isPlaying}
-        size="lg"
-        className="mb-2 h-12 w-12 rounded-full p-0"
-        aria-label={isPlaying ? 'Playing chord' : 'Play chord'}
-        title={isPlaying ? 'Playing chord' : 'Play chord'}
-      >
-        <span className="sr-only">{isPlaying ? 'Playing' : 'Play chord'}</span>
-        <PlaybackIcon state={isPlaying ? 'pause' : 'play'} className="h-5 w-5" />
-      </Button>
+        isPlaying={isPlaying}
+        label="Play chord"
+        playingLabel="Playing chord"
+        pulsePhase={pulsePhase}
+        pulseTick={pulseTick}
+        className="mb-2"
+      />
     </div>
   );
 }

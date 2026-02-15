@@ -1,8 +1,13 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Question } from '../../types/game';
 import { useAudio } from '../../hooks/useAudio';
-import { Button } from '../UI/Button';
-import { PlaybackIcon } from '../UI/PlaybackIcon';
+import { usePlaybackPulse } from '../../hooks/usePlaybackPulse';
+import { usePlaybackHotkey } from '../../hooks/usePlaybackHotkey';
+import { PlaybackButton } from './PlaybackButton';
+
+const NOTE_DURATION_SECONDS = 1.0;
+const INTERVAL_GAP_SECONDS = 0.1;
+const SECOND_PULSE_DELAY_MS = (NOTE_DURATION_SECONDS + INTERVAL_GAP_SECONDS) * 1000;
 
 interface IntervalPlayerProps {
   question: Question;
@@ -11,45 +16,47 @@ interface IntervalPlayerProps {
 
 export function IntervalPlayer({ question, disabled = false }: IntervalPlayerProps) {
   const { playInterval, isPlaying } = useAudio();
+  const { pulsePhase, pulseTick, triggerPulse, resetPulse } = usePlaybackPulse({
+    pulses: 2,
+    secondPulseDelayMs: SECOND_PULSE_DELAY_MS,
+  });
   const lastPlayedQuestionIdRef = useRef<number | null>(null);
   const isCurrentQuestionPlaying = isPlaying && lastPlayedQuestionIdRef.current === question.id;
+  const pulseBorderClass = useMemo(() => (
+    pulsePhase === 2 ? 'border-cyan-300/70' : 'border-amber-300/70'
+  ), [pulsePhase]);
 
   const handlePlay = useCallback(async () => {
     if (disabled) return;
-    if (isCurrentQuestionPlaying) return;
 
     lastPlayedQuestionIdRef.current = question.id;
+    triggerPulse();
     await playInterval(
       question.startingNote, 
       question.targetNote, 
-      question.instrument
+      question.instrument,
+      INTERVAL_GAP_SECONDS
     );
-  }, [disabled, isCurrentQuestionPlaying, playInterval, question.id, question.instrument, question.startingNote, question.targetNote]);
+  }, [
+    disabled,
+    playInterval,
+    question.id,
+    question.instrument,
+    question.startingNote,
+    question.targetNote,
+    triggerPulse,
+  ]);
+
+  usePlaybackHotkey({
+    enabled: !disabled,
+    onTrigger: () => {
+      void handlePlay();
+    },
+  });
 
   useEffect(() => {
-    if (disabled) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.code !== 'Space') return;
-      const target = event.target as HTMLElement | null;
-      if (target && (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.tagName === 'BUTTON' ||
-        target.isContentEditable
-      )) {
-        return;
-      }
-
-      event.preventDefault();
-      void handlePlay();
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [disabled, handlePlay]);
+    resetPulse();
+  }, [question.id, resetPulse]);
 
   return (
     <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-4 text-center shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur">
@@ -61,17 +68,17 @@ export function IntervalPlayer({ question, disabled = false }: IntervalPlayerPro
         </p>
       </div>
 
-      <Button
+      <PlaybackButton
         onClick={handlePlay}
-        disabled={disabled || isCurrentQuestionPlaying}
-        size="lg"
-        className="mb-2 h-12 w-12 rounded-full p-0"
-        aria-label={isCurrentQuestionPlaying ? 'Playing interval' : 'Play interval'}
-        title={isCurrentQuestionPlaying ? 'Playing interval' : 'Play interval'}
-      >
-        <span className="sr-only">{isCurrentQuestionPlaying ? 'Playing' : 'Play'}</span>
-        <PlaybackIcon state={isCurrentQuestionPlaying ? 'pause' : 'play'} className="h-5 w-5" />
-      </Button>
+        disabled={disabled}
+        isPlaying={isCurrentQuestionPlaying}
+        label="Play interval"
+        playingLabel="Playing interval"
+        pulsePhase={pulsePhase}
+        pulseTick={pulseTick}
+        pulseClassName={pulseBorderClass}
+        className="mb-2"
+      />
     </div>
   );
 }
