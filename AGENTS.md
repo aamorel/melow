@@ -7,7 +7,7 @@ The goal of this app is to help users practice their musical ear training skills
 ## Tech Stack & Tooling
 - **Runtime**: React 19 with TypeScript (strict mode, `noUnused*` enabled).
 - **Build tooling**: Vite 7 (`npm run dev/build/preview`), TypeScript project references (`tsconfig.app.json`).
-- **Styling**: Tailwind CSS 3 with PostCSS + Autoprefixer (`src/index.css`/`src/App.css`).
+- **Styling**: Tailwind CSS 3 with PostCSS + Autoprefixer (`src/index.css`).
 - **Linting**: ESLint 9 with React / React Hooks plugins (`npm run lint`).
 - **Audio**: Web Audio API wrapped by `src/services/audioEngine.ts`.
 - **Persistence**: Browser `localStorage` via `src/services/database.ts`.

@@ -1,8 +1,8 @@
 import { ButtonHTMLAttributes, ReactNode } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'success' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'ghost';
+  size?: 'sm' | 'md' | 'lg' | 'icon';
   children: ReactNode;
 }
 
@@ -21,12 +21,14 @@ export function Button({
     secondary: 'border border-slate-700/70 bg-slate-900/70 text-slate-100 hover:bg-slate-800/80',
     success: 'bg-emerald-400/90 text-slate-950 hover:bg-emerald-300',
     danger: 'bg-rose-400/90 text-slate-950 hover:bg-rose-300',
+    ghost: 'border border-slate-800/80 bg-slate-900/70 text-slate-300 hover:border-slate-600 hover:bg-slate-800/80 hover:text-white',
   };
 
   const sizeClasses = {
     sm: 'px-3 py-1.5 text-sm',
     md: 'px-4 py-2 text-base',
     lg: 'px-6 py-3 text-lg',
+    icon: 'h-10 w-10 p-0 text-sm',
   };
 
   const disabledClasses = disabled 

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Layout } from './components/UI/Layout';
 import { AccountSidePanel } from './components/UI/AccountSidePanel';
 import { HeadphoneScene } from './components/UI/HeadphoneScene';
+import { Button } from './components/UI/Button';
 import { ListeningExercise } from './features/listening/ListeningExercise';
 import { PitchExercise } from './features/pitch/PitchExercise';
 import { ChordExercise } from './features/chords/ChordExercise';
@@ -48,18 +49,20 @@ function App() {
   return (
     <Layout
       headerActions={(
-        <button
+        <Button
           type="button"
           onClick={() => setIsAccountOpen((prev) => !prev)}
           aria-label={isAccountOpen ? 'Hide profile panel' : 'Show profile panel'}
-          className={`flex h-10 w-10 items-center justify-center rounded-2xl border text-sm font-semibold text-slate-200 shadow-[0_10px_30px_rgba(0,0,0,0.3)] transition ${
+          variant="ghost"
+          size="icon"
+          className={`rounded-2xl text-sm font-semibold text-slate-200 shadow-[0_10px_30px_rgba(0,0,0,0.3)] ${
             isAccountOpen
-              ? 'border-cyan-400/60 bg-cyan-500/10 text-cyan-100'
+              ? 'border-cyan-400/60 bg-cyan-500/10 text-cyan-100 hover:border-cyan-300/70 hover:bg-cyan-500/20'
               : 'border-slate-800/80 bg-slate-900/70 hover:border-slate-600 hover:text-white'
           }`}
         >
           DL
-        </button>
+        </Button>
       )}
     >
       <div className="grid gap-8">
@@ -161,14 +164,16 @@ function App() {
                 <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Account</p>
                 <h2 className="text-lg font-semibold text-slate-100">Profile overview</h2>
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={() => setIsAccountOpen(false)}
                 aria-label="Hide profile panel"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-800/80 bg-slate-900/70 text-sm text-slate-300 transition hover:border-slate-600 hover:text-white"
+                variant="ghost"
+                size="icon"
+                className="rounded-full"
               >
                 &rarr;
-              </button>
+              </Button>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
               <AccountSidePanel />
