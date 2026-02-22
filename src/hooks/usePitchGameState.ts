@@ -147,8 +147,8 @@ export function usePitchGameState() {
     dispatch({ type: 'SET_INSTRUMENT', instrument });
   }, []);
 
-  const currentQuestion = state.currentSession?.questions[state.currentQuestionIndex];
-  const isGameComplete = state.currentSession &&
+  const currentQuestion = state.currentSession?.questions[state.currentQuestionIndex] ?? null;
+  const isGameComplete = state.currentSession !== null &&
     state.currentQuestionIndex >= state.currentSession.questions.length;
 
   return {

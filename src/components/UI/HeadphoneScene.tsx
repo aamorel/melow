@@ -10,6 +10,7 @@ const HOVER_AMPLITUDE = 0.08;
 const ROTATION_SPEED = 0.12;
 const THEME_TINT = new THREE.Color('#f59e0b');
 const THEME_TINT_STRENGTH = 0.18;
+type LoadedGLTF = { scene: THREE.Object3D };
 
 export function HeadphoneScene() {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -81,7 +82,7 @@ export function HeadphoneScene() {
     };
 
     const loader = new GLTFLoader();
-    loader.load(headphoneModel, (gltf) => {
+    loader.load(headphoneModel, (gltf: LoadedGLTF) => {
       if (isDisposed) {
         return;
       }
@@ -96,19 +97,19 @@ export function HeadphoneScene() {
         camera.lookAt(0, 0, 0);
       }
 
-      loadedModel.traverse((child) => {
+      loadedModel.traverse((child: THREE.Object3D) => {
         if (child instanceof THREE.Mesh) {
           if (!child.geometry.attributes.normal) {
             child.geometry.computeVertexNormals();
           }
         }
       });
-      loadedModel.traverse((child) => {
+      loadedModel.traverse((child: THREE.Object3D) => {
         if (child instanceof THREE.Mesh) {
           child.castShadow = false;
           child.receiveShadow = false;
           const materials = Array.isArray(child.material) ? child.material : [child.material];
-          materials.forEach((material) => {
+          materials.forEach((material: THREE.Material) => {
             if (
               material instanceof THREE.MeshStandardMaterial ||
               material instanceof THREE.MeshPhysicalMaterial
@@ -119,7 +120,7 @@ export function HeadphoneScene() {
             }
           });
           if (Array.isArray(child.material)) {
-            child.material.forEach((material) => {
+            child.material.forEach((material: THREE.Material) => {
               material.needsUpdate = true;
             });
           } else if (child.material) {
@@ -127,7 +128,7 @@ export function HeadphoneScene() {
           }
         }
       });
-    }, undefined, (error) => {
+    }, undefined, (error: unknown) => {
       if (!isDisposed) {
         console.error('Failed to load headphone model', error);
       }
@@ -166,11 +167,11 @@ export function HeadphoneScene() {
       }
       resizeObserver.disconnect();
       if (loadedModel) {
-        loadedModel.traverse((child) => {
+        loadedModel.traverse((child: THREE.Object3D) => {
           if (child instanceof THREE.Mesh) {
             child.geometry.dispose();
             if (Array.isArray(child.material)) {
-              child.material.forEach((material) => material.dispose());
+              child.material.forEach((material: THREE.Material) => material.dispose());
             } else if (child.material) {
               child.material.dispose();
             }
