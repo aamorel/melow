@@ -2,6 +2,7 @@ import type { SessionRecord, AnswerRecord, SettingsRecord } from '../types/datab
 import type { GameSession } from '../types/game';
 import type { PitchSession } from '../types/pitch';
 import type { ChordSession } from '../types/chord';
+import type { ScaleSession } from '../types/scale';
 import type { ExerciseType } from '../types/exercise';
 import { frequencyToNoteData } from '../utils/intervals';
 
@@ -108,6 +109,14 @@ export class DatabaseService {
     return this.saveSessionRecord('chords', session, (question, answer) => ({
       starting_note: `${question.rootNote.note}${question.rootNote.octave}`,
       correct_interval: question.chordQuality,
+      user_answer: answer.userAnswer,
+    }));
+  }
+
+  async saveScaleSession(session: ScaleSession): Promise<number> {
+    return this.saveSessionRecord('scales', session, (question, answer) => ({
+      starting_note: `${question.rootNote.note}${question.rootNote.octave}`,
+      correct_interval: question.scaleType,
       user_answer: answer.userAnswer,
     }));
   }

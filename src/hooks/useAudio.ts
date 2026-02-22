@@ -90,6 +90,23 @@ export function useAudio() {
     }
   }, [isInitialized, schedulePlaybackStop]);
 
+  const playScale = useCallback(
+    async (notes: Note[], instrument: Instrument, noteDuration = 0.55, gap = 0.05) => {
+      if (!isInitialized || notes.length === 0) return;
+
+      const totalDuration = (noteDuration * notes.length) + (gap * Math.max(0, notes.length - 1));
+      setIsPlaying(true);
+      try {
+        await audioEngine.playScale(notes.map(note => note.frequency), instrument, noteDuration, gap);
+      } catch (error) {
+        console.error('Failed to play scale:', error);
+      } finally {
+        schedulePlaybackStop(totalDuration * 1000);
+      }
+    },
+    [isInitialized, schedulePlaybackStop]
+  );
+
   return {
     isInitialized,
     isPlaying,
@@ -97,5 +114,6 @@ export function useAudio() {
     playInterval,
     playReferenceTone,
     playChord,
+    playScale,
   };
 }

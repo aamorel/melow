@@ -131,6 +131,29 @@ export class AudioEngine {
     this.scheduleBusCleanup(playbackBus, this.cleanupDurationMs(noteDuration * 2 + gap));
   }
 
+  async playScale(
+    frequencies: number[],
+    instrument: Instrument,
+    noteDuration = 0.55,
+    gap = 0.05
+  ): Promise<void> {
+    const voiceContext = await this.preparePlayback();
+    if (!voiceContext || !this.audioContext || frequencies.length === 0) return;
+
+    this.beginPlayback();
+    const playbackBus = this.createPlaybackBus();
+    if (!playbackBus) return;
+
+    const now = this.audioContext.currentTime;
+    frequencies.forEach((frequency, index) => {
+      const startTime = now + index * (noteDuration + gap);
+      instrumentVoices[instrument](voiceContext, frequency, noteDuration, startTime, playbackBus);
+    });
+
+    const totalDuration = (noteDuration * frequencies.length) + (gap * Math.max(0, frequencies.length - 1));
+    this.scheduleBusCleanup(playbackBus, this.cleanupDurationMs(totalDuration));
+  }
+
   private async preparePlayback(): Promise<AudioVoiceContext | null> {
     if (!this.audioContext || !this.masterGain) {
       await this.initialize();

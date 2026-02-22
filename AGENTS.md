@@ -2,7 +2,7 @@
 
 ## Goal
 
-The goal of this app is to help users practice their musical ear training skills by identifying intervals, chords, and scales.
+The goal of this app is to help users practice their musical ear training skills by identifying intervals, chords, scales, and pitch accuracy.
 
 ## Tech Stack & Tooling
 - **Runtime**: React 19 with TypeScript (strict mode, `noUnused*` enabled).
@@ -22,6 +22,9 @@ src/
     UI/                   // Generic buttons, layout
   features/
     listening/            // Listening exercise container
+    chords/               // Chord quality exercise
+    pitch/                // Pitch matching exercise
+    scales/               // Scale recognition exercise
   hooks/                  // Custom hooks (state, audio)
   services/               // Non-React singletons (audio engine, interval generator, db)
   types/                  // Shared TypeScript types
@@ -30,10 +33,10 @@ src/
 `public/` hosts static assets; Vite handles entry via `src/main.tsx`.
 
 ## Core Concepts
-- **Exercises**: Defined in `src/App.tsx` as metadata; currently only `ListeningExercise`.
-- **Game loop**: `useGameState` owns reducer-based session state, question sequencing, and auto-saving finished sessions.
-- **Question generation**: `intervalGenerator.generateQuestions` builds ten-question sets from `GAME_LEVELS`.
-- **Audio**: `useAudio` lazily initialises Web Audio context and exposes note/interval playback queues with basic envelopes per instrument.
+- **Exercises**: Defined in `src/App.tsx` metadata; current exercises are Listening, Chords, Pitch Match, and Scales.
+- **Game loop**: Each exercise has a reducer hook (`useGameState`, `useChordGameState`, `usePitchGameState`, `useScaleGameState`) for session state, sequencing, and auto-saving finished sessions.
+- **Question generation**: `intervalGenerator`, `chordGenerator`, and `scaleGenerator` build ten-question sets from their respective `*_LEVELS`.
+- **Audio**: `useAudio` lazily initialises Web Audio context and exposes note/interval/chord/scale playback queues with basic envelopes per instrument.
 - **Statistics**: `ProgressChart` & `SessionHistory` query the database service each render for local history.
 
 ## Coding Conventions
@@ -42,6 +45,10 @@ src/
 - Use Tailwind utility classes for layout/styling; avoid inline styles.
 - Derived state belongs in selectors (`computed` return from hooks) instead of component-level recalculation.
 - When introducing new exercises, colocate their specific UI under `src/features/<exercise>/`.
+- Factorization rules for exercise UIs:
+  - Use `AnswerGrid` for multiple-choice answer buttons (intervals, chords, scales).
+  - Use `useAutoAdvanceOnResult` for timed post-answer transitions.
+  - Use `calculateSessionMetrics` to build completion summaries.
 
 ## Commands
 - `npm run dev` – Vite dev server
@@ -50,11 +57,10 @@ src/
 - `npm run lint` – ESLint with project rules
 
 ## Data & Persistence Notes
-- Sessions auto-save after completion; guard against duplicate saves via `useRef` set in `useGameState`.
+- Sessions auto-save after completion; guard against duplicate saves via `useRef` in each exercise state hook.
 - LocalStorage keys: `melow_sessions`, `melow_answers`, `melow_settings`. Future agents should migrate or namespace carefully if storage schema changes.
 - Average response times saved in milliseconds; UI displays seconds (`/ 1000`).
 
 ## Known Gaps / Future Work
-- Only the listening exercise is implemented; additional exercise shells should follow the same metadata-driven approach.
 - No automated tests yet; consider adding component/unit tests when logic grows.
 - Audio engine is browser-only; server-side rendering not supported.

@@ -36,3 +36,12 @@ export type {
   ChordSession,
   ChordGameState,
 } from './chord';
+
+export type {
+  ScaleType,
+  ScaleLevel,
+  ScaleQuestion,
+  ScaleAnswer,
+  ScaleSession,
+  ScaleGameState,
+} from './scale';

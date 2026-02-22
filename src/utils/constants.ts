@@ -1,6 +1,7 @@
 import type { GameLevel, Interval } from '../types/game';
 import type { PitchLevel } from '../types/pitch';
 import type { ChordLevel, ChordQuality } from '../types/chord';
+import type { ScaleLevel, ScaleType } from '../types/scale';
 
 export const INTERVALS: Record<Interval, { name: string; semitones: number }> = {
   unison: { name: 'Unison', semitones: 0 },
@@ -35,6 +36,15 @@ export const CHORD_QUALITIES: Record<ChordQuality, { name: string; intervals: nu
   sus4: { name: 'Sus 4', intervals: [0, 5, 7] },
   add2: { name: 'Add 2', intervals: [0, 2, 4, 7] },
   add9: { name: 'Add 9', intervals: [0, 4, 7, 14] },
+};
+
+export const SCALE_TYPES: Record<ScaleType, { name: string; intervals: number[] }> = {
+  major: { name: 'Major', intervals: [0, 2, 4, 5, 7, 9, 11, 12] },
+  naturalMinor: { name: 'Natural minor', intervals: [0, 2, 3, 5, 7, 8, 10, 12] },
+  harmonicMinor: { name: 'Harmonic minor', intervals: [0, 2, 3, 5, 7, 8, 11, 12] },
+  melodicMinor: { name: 'Melodic minor', intervals: [0, 2, 3, 5, 7, 9, 11, 12] },
+  dorian: { name: 'Dorian', intervals: [0, 2, 3, 5, 7, 9, 10, 12] },
+  mixolydian: { name: 'Mixolydian', intervals: [0, 2, 4, 5, 7, 9, 10, 12] },
 };
 
 export const GAME_LEVELS: GameLevel[] = [
@@ -121,6 +131,36 @@ export const CHORD_LEVELS: ChordLevel[] = [
     startingNotes: NOTES,
     octaveRange: [3, 4],
     mixedInstruments: false,
+  },
+];
+
+export const SCALE_LEVELS: ScaleLevel[] = [
+  {
+    id: 1,
+    name: 'Major & Minor',
+    description: 'Identify major and natural minor scales.',
+    scales: ['major', 'naturalMinor'],
+    startingNotes: ['C', 'F', 'G'],
+    octaveRange: [3, 4],
+    mixedInstruments: false,
+  },
+  {
+    id: 2,
+    name: 'Minor Colors',
+    description: 'Harmonic and melodic minor across all keys.',
+    scales: ['harmonicMinor', 'melodicMinor', 'major'],
+    startingNotes: NOTES,
+    octaveRange: [3, 4],
+    mixedInstruments: false,
+  },
+  {
+    id: 3,
+    name: 'Modal Drift',
+    description: 'Dorian and mixolydian modes with familiar majors.',
+    scales: ['dorian', 'mixolydian', 'major'],
+    startingNotes: NOTES,
+    octaveRange: [3, 4],
+    mixedInstruments: true,
   },
 ];
 

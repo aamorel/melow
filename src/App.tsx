@@ -6,8 +6,9 @@ import { Button } from './components/UI/Button';
 import { ListeningExercise } from './features/listening/ListeningExercise';
 import { PitchExercise } from './features/pitch/PitchExercise';
 import { ChordExercise } from './features/chords/ChordExercise';
+import { ScaleExercise } from './features/scales/ScaleExercise';
 
-type ExerciseId = 'listening' | 'pitch' | 'chords';
+type ExerciseId = 'listening' | 'pitch' | 'chords' | 'scales';
 
 interface ExerciseDefinition {
   id: ExerciseId;
@@ -38,6 +39,13 @@ const EXERCISES: ExerciseDefinition[] = [
     tags: ['Voice', 'Accuracy'],
     accent: 'from-orange-300/90 to-amber-500/80',
     icon: 'P',
+  },
+  {
+    id: 'scales',
+    name: 'Scales',
+    tags: ['Modes', 'Patterns'],
+    accent: 'from-emerald-300/90 to-cyan-400/80',
+    icon: 'S',
   },
 ];
 
@@ -74,6 +82,8 @@ function App() {
               <ChordExercise onBack={() => setSelectedExercise(null)} />
             ) : activeExercise.id === 'pitch' ? (
               <PitchExercise onBack={() => setSelectedExercise(null)} />
+            ) : activeExercise.id === 'scales' ? (
+              <ScaleExercise onBack={() => setSelectedExercise(null)} />
             ) : null
           ) : (
             <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_380px]">

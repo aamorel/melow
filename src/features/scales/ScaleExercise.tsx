@@ -1,26 +1,26 @@
 import { useState } from 'react';
-import { GameControls } from '../../components/Game/GameControls';
-import { IntervalPlayer } from '../../components/Game/IntervalPlayer';
-import { AnswerButtons } from '../../components/Game/AnswerButtons';
 import { ScoreDisplay } from '../../components/Game/ScoreDisplay';
 import { SessionCompleteCard } from '../../components/Game/SessionCompleteCard';
 import { ProgressChart } from '../../components/Stats/ProgressChart';
 import { SessionHistory } from '../../components/Stats/SessionHistory';
 import { ExerciseHeader, ExerciseView } from '../../components/UI/ExerciseHeader';
 import { useAutoAdvanceOnResult } from '../../hooks/useAutoAdvanceOnResult';
-import { useGameState } from '../../hooks/useGameState';
+import { useScaleGameState } from '../../hooks/useScaleGameState';
 import { useAudio } from '../../hooks/useAudio';
-import { ANSWER_FEEDBACK_TIMINGS, GAME_LEVELS } from '../../utils/constants';
+import { ANSWER_FEEDBACK_TIMINGS, SCALE_LEVELS } from '../../utils/constants';
 import { calculateSessionMetrics } from '../../utils/sessionMetrics';
-import type { Interval } from '../../types/game';
+import type { ScaleType } from '../../types/scale';
+import { ScaleControls } from './ScaleControls';
+import { ScalePlayer } from './ScalePlayer';
+import { ScaleAnswerButtons } from './ScaleAnswerButtons';
 
-interface ListeningExerciseProps {
+interface ScaleExerciseProps {
   onBack?: () => void;
 }
 
-export function ListeningExercise({ onBack }: ListeningExerciseProps) {
+export function ScaleExercise({ onBack }: ScaleExerciseProps) {
   const [currentView, setCurrentView] = useState<ExerciseView>('training');
-  const { state, actions, computed } = useGameState();
+  const { state, actions, computed } = useScaleGameState();
   const { isInitialized } = useAudio();
   const { nextQuestion } = actions;
 
@@ -28,7 +28,7 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
     actions.startGame(state.selectedLevel, state.selectedInstrument);
   };
 
-  const handleAnswer = (answer: Interval, responseTime: number) => {
+  const handleAnswer = (answer: ScaleType, responseTime: number) => {
     actions.submitAnswer(answer, responseTime);
   };
 
@@ -50,7 +50,7 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
 
     if (!session) {
       return (
-        <GameControls
+        <ScaleControls
           selectedLevel={state.selectedLevel}
           selectedInstrument={state.selectedInstrument}
           onLevelChange={actions.setLevel}
@@ -83,7 +83,7 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
       );
     }
 
-    const currentLevel = GAME_LEVELS.find(l => l.id === session.level)!;
+    const currentLevel = SCALE_LEVELS.find(l => l.id === session.level) ?? SCALE_LEVELS[0];
 
     return (
       <div className="space-y-3">
@@ -95,16 +95,16 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
 
         {computed.currentQuestion && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            <IntervalPlayer 
+            <ScalePlayer
               question={computed.currentQuestion}
               disabled={state.showResult}
             />
 
-            <AnswerButtons
-              availableIntervals={currentLevel.intervals}
+            <ScaleAnswerButtons
+              availableScales={currentLevel.scales}
               onAnswer={handleAnswer}
               questionId={computed.currentQuestion.id}
-              correctAnswer={computed.currentQuestion.correctInterval}
+              correctAnswer={computed.currentQuestion.scaleType}
               disabled={state.showResult}
             />
           </div>
@@ -116,9 +116,9 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
   return (
     <div className="space-y-6">
       <ExerciseHeader
-        title="Listening"
-        icon="L"
-        iconClassName="bg-gradient-to-br from-amber-300/90 to-orange-400/80"
+        title="Scale Recognition"
+        icon="S"
+        iconClassName="bg-gradient-to-br from-emerald-300/90 to-cyan-400/80"
         currentView={currentView}
         onViewChange={setCurrentView}
         onBack={onBack}
@@ -129,13 +129,13 @@ export function ListeningExercise({ onBack }: ListeningExerciseProps) {
           <p className="text-amber-200">Audio engine loading...</p>
         </div>
       )}
-      
+
       {currentView === 'training' ? (
         renderTrainingView()
       ) : (
         <div className="space-y-6">
-          <ProgressChart exerciseType="listening" levels={GAME_LEVELS} />
-          <SessionHistory exerciseType="listening" levels={GAME_LEVELS} />
+          <ProgressChart exerciseType="scales" levels={SCALE_LEVELS} />
+          <SessionHistory exerciseType="scales" levels={SCALE_LEVELS} />
         </div>
       )}
     </div>

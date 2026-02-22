@@ -1,12 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ScoreDisplay } from '../../components/Game/ScoreDisplay';
 import { SessionCompleteCard } from '../../components/Game/SessionCompleteCard';
 import { ProgressChart } from '../../components/Stats/ProgressChart';
 import { SessionHistory } from '../../components/Stats/SessionHistory';
 import { ExerciseHeader, ExerciseView } from '../../components/UI/ExerciseHeader';
+import { useAutoAdvanceOnResult } from '../../hooks/useAutoAdvanceOnResult';
 import { useChordGameState } from '../../hooks/useChordGameState';
 import { useAudio } from '../../hooks/useAudio';
 import { ANSWER_FEEDBACK_TIMINGS, CHORD_LEVELS } from '../../utils/constants';
+import { calculateSessionMetrics } from '../../utils/sessionMetrics';
 import type { ChordQuality } from '../../types/chord';
 import { ChordControls } from './ChordControls';
 import { ChordPlayer } from './ChordPlayer';
@@ -34,24 +36,14 @@ export function ChordExercise({ onBack }: ChordExerciseProps) {
     actions.endGame();
   };
 
-  useEffect(() => {
-    if (currentView !== 'training' || !state.showResult || !state.currentSession) return;
-
-    const answer = state.currentSession.answers[state.currentQuestionIndex];
-    if (!answer) return;
-
-    const delayMs = answer.isCorrect
-      ? ANSWER_FEEDBACK_TIMINGS.correctMs
-      : ANSWER_FEEDBACK_TIMINGS.incorrectMs;
-
-    const timer = window.setTimeout(() => {
-      nextQuestion();
-    }, delayMs);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
-  }, [currentView, state.showResult, state.currentQuestionIndex, state.currentSession, nextQuestion]);
+  useAutoAdvanceOnResult({
+    isActive: currentView === 'training',
+    showResult: state.showResult,
+    currentSession: state.currentSession,
+    currentQuestionIndex: state.currentQuestionIndex,
+    onNextQuestion: nextQuestion,
+    timings: ANSWER_FEEDBACK_TIMINGS,
+  });
 
   const renderTrainingView = () => {
     const session = state.currentSession;
@@ -70,16 +62,19 @@ export function ChordExercise({ onBack }: ChordExerciseProps) {
     }
 
     if (computed.isGameComplete) {
-      const correctAnswers = session.answers.filter(a => a.isCorrect).length;
-      const accuracy = (correctAnswers / session.answers.length) * 100;
-      const averageTime = session.answers.reduce((sum, a) => sum + a.responseTimeMs, 0) / session.answers.length;
+      const {
+        correctAnswers,
+        totalQuestions,
+        accuracyPercent,
+        averageTimeMs,
+      } = calculateSessionMetrics(session.answers);
 
       return (
         <SessionCompleteCard
           correctAnswers={correctAnswers}
-          totalQuestions={session.answers.length}
-          accuracyPercent={accuracy}
-          averageTimeMs={averageTime}
+          totalQuestions={totalQuestions}
+          accuracyPercent={accuracyPercent}
+          averageTimeMs={averageTimeMs}
           primaryLabel="Play Again"
           secondaryLabel="Back to Menu"
           onPrimaryAction={handleStartGame}

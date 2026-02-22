@@ -1,1 +1,1 @@
-export type ExerciseType = 'listening' | 'pitch' | 'chords';
+export type ExerciseType = 'listening' | 'pitch' | 'chords' | 'scales';
